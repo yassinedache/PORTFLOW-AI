@@ -167,6 +167,14 @@ export class BookingService {
       },
     });
 
+    // Persist blockchain proof record for audit trail
+    await this.blockchainService.createProof('BOOKING', booking.id, {
+      bookingId: booking.id,
+      carrierId: booking.carrierId,
+      terminalId: booking.terminalId,
+      timeSlotId: booking.timeSlotId,
+    });
+
     // Generate QR code data URL for immediate use
     const qrDataUrl = await this.qrService.generateQrDataUrl(qrToken);
 

@@ -210,6 +210,19 @@ model ReadinessProof {
   @@map("readiness_proofs")
 }
 
+// ─── Blockchain Proof ────────────────────────────────────────────────────────
+
+model BlockchainProof {
+  id          String   @id @default(uuid()) @db.Uuid
+  entityType  String   @map("entity_type") // BOOKING | READINESS
+  entityId    String   @map("entity_id") @db.Uuid
+  hash        String
+  payloadHash String   @map("payload_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("blockchain_proofs")
+}
+
 // ─── Gate Access ─────────────────────────────────────────────────────────────
 
 model GateAccessLog {

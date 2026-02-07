@@ -198,6 +198,14 @@ export class OperatorService {
       },
     });
 
+    // Persist blockchain proof record
+    await this.blockchainService.createProof('READINESS', bookingId, {
+      bookingId: booking.id,
+      carrierId: booking.carrierId,
+      terminalId: booking.terminalId,
+      timeSlotId: booking.timeSlotId,
+    });
+
     // Emit events
     this.eventsGateway.emitBookingStatus(bookingId, 'READY_TO_GO');
     this.eventsGateway.emitBookingReady(bookingId, {
