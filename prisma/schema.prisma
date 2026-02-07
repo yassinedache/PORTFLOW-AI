@@ -1,0 +1,376 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  PORT_ADMIN
+  TERMINAL_OPERATOR
+  CARRIER
+  GATE_AGENT
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  AT_RISK
+  READY_TO_GO
+  REJECTED
+  CONSUMED
+  CANCELLED
+}
+
+enum ContainerStatus {
+  NOT_ARRIVED
+  IN_YARD
+  READY
+  RELEASED
+}
+
+enum GateAccessResult {
+  ALLOWED
+  DENIED
+}
+
+enum TrackingEventType {
+  ARRIVED
+  DEPARTED
+  IN_TRANSIT
+  CUSTOMS_HOLD
+  RELEASED
+}
+
+enum DocumentType {
+  BILL_OF_LADING
+}
+
+enum OcrJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+// ─── User & Company ──────────────────────────────────────────────────────────
+
+model Company {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+  users     User[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  companyId    String?  @map("company_id") @db.Uuid
+  company      Company? @relation(fields: [companyId], references: [id])
+  deviceId     String?  @map("device_id") // For GATE_AGENT device-binding
+  createdAt    DateTime @default(now())
+
+  bookings        Booking[]
+  aiSessions      AiSession[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+  readinessProofs ReadinessProof[] @relation("ReadinessConfirmer")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// ─── Terminal & Gate ─────────────────────────────────────────────────────────
+
+model Terminal {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  location  String
+  isActive  Boolean    @default(true) @map("is_active")
+  createdAt DateTime   @default(now())
+
+  gates      Gate[]
+  timeSlots  TimeSlot[]
+  bookings   Booking[]
+  metrics    MetricDaily[]
+  zones      Zone[]
+  containers Container[]
+
+  @@map("terminals")
+}
+
+model Gate {
+  id         String  @id @default(uuid()) @db.Uuid
+  terminalId String  @map("terminal_id") @db.Uuid
+  terminal   Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  name       String
+  isActive   Boolean @default(true) @map("is_active")
+
+  gateAccessLogs GateAccessLog[]
+
+  @@map("gates")
+}
+
+// ─── Time Slots ──────────────────────────────────────────────────────────────
+
+model TimeSlot {
+  id         String   @id @default(uuid()) @db.Uuid
+  terminalId String   @map("terminal_id") @db.Uuid
+  terminal   Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  startTime  DateTime @map("start_time")
+  endTime    DateTime @map("end_time")
+  capacity   Int
+
+  bookings Booking[]
+
+  @@map("time_slots")
+}
+
+// ─── Booking ─────────────────────────────────────────────────────────────────
+
+model Booking {
+  id              String        @id @default(uuid()) @db.Uuid
+  carrierId       String        @map("carrier_id") @db.Uuid
+  carrier         User          @relation(fields: [carrierId], references: [id])
+  terminalId      String        @map("terminal_id") @db.Uuid
+  terminal        Terminal      @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  timeSlotId      String        @map("time_slot_id") @db.Uuid
+  timeSlot        TimeSlot      @relation(fields: [timeSlotId], references: [id])
+  status          BookingStatus @default(PENDING)
+  readinessScore  Float?        @map("readiness_score")
+  price           Float?
+  qrToken         String?       @map("qr_token")
+  blockchainHash  String?       @map("blockchain_hash")
+  idempotencyKey  String?       @unique @map("idempotency_key")
+  truckId         String?       @map("truck_id") @db.Uuid
+  truck           Truck?        @relation(fields: [truckId], references: [id])
+  containerId     String        @map("container_id") @db.Uuid
+  container       Container     @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  validatedAt     DateTime?     @map("validated_at")
+
+  gateAccessLogs       GateAccessLog[]
+  readinessPredictions ReadinessPrediction[]
+  readinessProofs      ReadinessProof[]
+
+  @@map("bookings")
+}
+
+// ─── Readiness Prediction ────────────────────────────────────────────────────
+
+model ReadinessPrediction {
+  id          String   @id @default(uuid()) @db.Uuid
+  bookingId   String   @map("booking_id") @db.Uuid
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  probability Int      // 0–100
+  riskLevel   String   @map("risk_level") // LOW, MEDIUM, HIGH
+  computedAt  DateTime @default(now()) @map("computed_at")
+
+  @@map("readiness_predictions")
+}
+
+// ─── Readiness Proof ─────────────────────────────────────────────────────────
+
+model ReadinessProof {
+  id             String   @id @default(uuid()) @db.Uuid
+  bookingId      String   @map("booking_id") @db.Uuid
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  containerId    String   @map("container_id") @db.Uuid
+  container      Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  confirmedBy    String   @map("confirmed_by") @db.Uuid
+  confirmedByUser User    @relation("ReadinessConfirmer", fields: [confirmedBy], references: [id])
+  confirmedAt    DateTime @default(now()) @map("confirmed_at")
+  blockchainHash String   @map("blockchain_hash")
+
+  @@map("readiness_proofs")
+}
+
+// ─── Gate Access ─────────────────────────────────────────────────────────────
+
+model GateAccessLog {
+  id        String           @id @default(uuid()) @db.Uuid
+  bookingId String           @map("booking_id") @db.Uuid
+  booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  gateId    String           @map("gate_id") @db.Uuid
+  gate      Gate             @relation(fields: [gateId], references: [id], onDelete: Cascade)
+  result    GateAccessResult
+  reason    String?
+  scannedAt DateTime         @default(now()) @map("scanned_at")
+
+  @@map("gate_access_logs")
+}
+
+// ─── Container & Tracking ────────────────────────────────────────────────────
+
+model Container {
+  id              String          @id @default(uuid()) @db.Uuid
+  containerNumber String          @unique @map("container_number")
+  carrierId       String          @map("carrier_id") @db.Uuid
+  terminalId      String?         @map("terminal_id") @db.Uuid
+  terminal        Terminal?       @relation(fields: [terminalId], references: [id])
+  status          ContainerStatus @default(NOT_ARRIVED)
+  lastUpdatedAt   DateTime?       @updatedAt @map("last_updated_at")
+  createdAt       DateTime        @default(now())
+
+  trackingEvents  TrackingEvent[]
+  bookings        Booking[]
+  readinessProofs ReadinessProof[]
+
+  @@map("containers")
+}
+
+model TrackingEvent {
+  id          String            @id @default(uuid()) @db.Uuid
+  containerId String            @map("container_id") @db.Uuid
+  container   Container         @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  type        TrackingEventType
+  location    String
+  timestamp   DateTime          @default(now())
+
+  @@map("tracking_events")
+}
+
+// ─── Truck & Location ────────────────────────────────────────────────────────
+
+model Truck {
+  id        String   @id @default(uuid()) @db.Uuid
+  plate     String   @unique
+  carrierId String   @map("carrier_id") @db.Uuid
+  createdAt DateTime @default(now())
+
+  locations TruckLocation[]
+  bookings  Booking[]
+
+  @@map("trucks")
+}
+
+model TruckLocation {
+  id        String   @id @default(uuid()) @db.Uuid
+  truckId   String   @map("truck_id") @db.Uuid
+  truck     Truck    @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  lat       Float
+  lng       Float
+  timestamp DateTime @default(now())
+
+  @@map("truck_locations")
+}
+
+// ─── Document & OCR ──────────────────────────────────────────────────────────
+
+model Document {
+  id        String       @id @default(uuid()) @db.Uuid
+  type      DocumentType
+  status    String       @default("UPLOADED")
+  fileName  String       @map("file_name")
+  filePath  String       @map("file_path")
+  userId    String       @map("user_id") @db.Uuid
+  createdAt DateTime     @default(now())
+
+  ocrJobs OcrJob[]
+
+  @@map("documents")
+}
+
+model OcrJob {
+  id         String       @id @default(uuid()) @db.Uuid
+  documentId String       @map("document_id") @db.Uuid
+  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  status     OcrJobStatus @default(PENDING)
+  resultJson Json?        @map("result_json")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("ocr_jobs")
+}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+
+model AiSession {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+
+  messages AiMessage[]
+
+  @@map("ai_sessions")
+}
+
+model AiMessage {
+  id        String        @id @default(uuid()) @db.Uuid
+  sessionId String        @map("session_id") @db.Uuid
+  session   AiSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      AiMessageRole
+  content   String
+  timestamp DateTime      @default(now())
+
+  @@map("ai_messages")
+}
+
+// ─── Zone ────────────────────────────────────────────────────────────────────
+
+model Zone {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  terminalId String   @map("terminal_id") @db.Uuid
+  terminal   Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  type       String   @default("GENERAL") // GENERAL, HAZMAT, REEFER, OVERSIZED
+  maxTrucks  Int      @default(50) @map("max_trucks")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now())
+
+  @@map("zones")
+}
+
+// ─── Audit & Metrics ─────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  meta      Json?
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model MetricDaily {
+  id              String   @id @default(uuid()) @db.Uuid
+  date            DateTime @db.Date
+  terminalId      String   @map("terminal_id") @db.Uuid
+  terminal        Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  avgWaitingTime  Float    @default(0) @map("avg_waiting_time")
+  totalBookings   Int      @default(0) @map("total_bookings")
+  revenue         Float    @default(0)
+
+  @@unique([date, terminalId])
+  @@map("metric_daily")
+}
