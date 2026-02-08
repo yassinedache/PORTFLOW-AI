@@ -59,7 +59,7 @@ export default function RegisterPage() {
         password: data.password,
         role: data.role,
       });
-      setAuth(res.user, res.accessToken);
+      setAuth(res.user, res.accessToken, res.csrfToken);
       toast.success('Account created successfully!');
       navigate(getDefaultRoute(res.user.role));
     } catch (err: unknown) {

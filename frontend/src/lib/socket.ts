@@ -46,6 +46,11 @@ export function subscribeToTruck(truckId: string) {
   s.emit('subscribe:truck', truckId);
 }
 
+export function subscribeToUser(userId: string) {
+  const s = getSocket();
+  s.emit('subscribe:user', userId);
+}
+
 export function setupSocketListeners(queryClient: QueryClient) {
   const s = getSocket();
 
@@ -91,5 +96,9 @@ export function setupSocketListeners(queryClient: QueryClient) {
 
   s.on('alert:new', () => {
     queryClient.invalidateQueries({ queryKey: ['operator', 'alerts'] });
+  });
+
+  s.on('notification:new', () => {
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
   });
 }

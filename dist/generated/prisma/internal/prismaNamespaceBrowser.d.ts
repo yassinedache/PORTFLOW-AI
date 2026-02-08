@@ -36,6 +36,7 @@ export declare const ModelName: {
     readonly SlotPricing: "SlotPricing";
     readonly PriorityAccess: "PriorityAccess";
     readonly Penalty: "Penalty";
+    readonly Notification: "Notification";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -267,6 +268,17 @@ export declare const PenaltyScalarFieldEnum: {
     readonly appliedAt: "appliedAt";
 };
 export type PenaltyScalarFieldEnum = (typeof PenaltyScalarFieldEnum)[keyof typeof PenaltyScalarFieldEnum];
+export declare const NotificationScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly type: "type";
+    readonly title: "title";
+    readonly message: "message";
+    readonly bookingId: "bookingId";
+    readonly read: "read";
+    readonly createdAt: "createdAt";
+};
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

@@ -18,13 +18,9 @@ const AdminOverview = lazy(() => import('@/features/admin/OverviewPage'));
 const PortBuilder = lazy(() => import('@/features/admin/PortBuilderPage'));
 
 // Carrier
-const CarrierDashboard = lazy(
-  () => import('@/features/carrier/DashboardPage'),
-);
+const CarrierDashboard = lazy(() => import('@/features/carrier/DashboardPage'));
 const TrucksPage = lazy(() => import('@/features/carrier/TrucksPage'));
-const ContainersPage = lazy(
-  () => import('@/features/carrier/ContainersPage'),
-);
+const ContainersPage = lazy(() => import('@/features/carrier/ContainersPage'));
 const SlotsPage = lazy(() => import('@/features/carrier/SlotsPage'));
 const BookingsPage = lazy(() => import('@/features/carrier/BookingsPage'));
 const BookingDetailPage = lazy(
@@ -48,10 +44,11 @@ const OperatorContainersPage = lazy(
   () => import('@/features/operator/ContainersPage'),
 );
 const RiskPage = lazy(() => import('@/features/operator/RiskPage'));
-const PenaltiesPage = lazy(
-  () => import('@/features/operator/PenaltiesPage'),
-);
+const PenaltiesPage = lazy(() => import('@/features/operator/PenaltiesPage'));
 const AlertsPage = lazy(() => import('@/features/operator/AlertsPage'));
+const OperatorAssistantPage = lazy(
+  () => import('@/features/operator/AssistantPage'),
+);
 
 // Gate
 const ScanPage = lazy(() => import('@/features/gate/ScanPage'));
@@ -276,6 +273,14 @@ export function AppRouter() {
             element={
               <RequireRole roles={[Role.TERMINAL_OPERATOR]}>
                 <AlertsPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="operator/assistant"
+            element={
+              <RequireRole roles={[Role.TERMINAL_OPERATOR]}>
+                <OperatorAssistantPage />
               </RequireRole>
             }
           />

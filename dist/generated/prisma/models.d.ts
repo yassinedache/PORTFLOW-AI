@@ -23,4 +23,5 @@ export type * from './models/MetricDaily.js';
 export type * from './models/SlotPricing.js';
 export type * from './models/PriorityAccess.js';
 export type * from './models/Penalty.js';
+export type * from './models/Notification.js';
 export type * from './commonInputTypes.js';

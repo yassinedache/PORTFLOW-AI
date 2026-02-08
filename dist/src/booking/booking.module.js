@@ -10,11 +10,12 @@ import { BookingController } from './booking.controller.js';
 import { BlockchainModule } from '../blockchain/blockchain.module.js';
 import { QrModule } from '../qr/qr.module.js';
 import { EventsModule } from '../events/events.module.js';
+import { NotificationModule } from '../notification/notification.module.js';
 let BookingModule = class BookingModule {
 };
 BookingModule = __decorate([
     Module({
-        imports: [BlockchainModule, QrModule, EventsModule],
+        imports: [BlockchainModule, QrModule, EventsModule, NotificationModule],
         controllers: [BookingController],
         providers: [BookingService],
         exports: [BookingService],

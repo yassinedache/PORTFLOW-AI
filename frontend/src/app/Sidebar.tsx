@@ -70,6 +70,7 @@ const operatorNav: NavItem[] = [
   { label: 'Risk', path: '/app/operator/risk', icon: ShieldCheck },
   { label: 'Penalties', path: '/app/operator/penalties', icon: FileWarning },
   { label: 'Alerts', path: '/app/operator/alerts', icon: AlertTriangle },
+  { label: 'AI Assistant', path: '/app/operator/assistant', icon: Bot },
 ];
 
 const gateNav: NavItem[] = [

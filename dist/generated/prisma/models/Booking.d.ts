@@ -203,6 +203,7 @@ export type BookingWhereInput = {
     readinessProofs?: Prisma.ReadinessProofListRelationFilter;
     priorityAccess?: Prisma.XOR<Prisma.PriorityAccessNullableScalarRelationFilter, Prisma.PriorityAccessWhereInput> | null;
     penalties?: Prisma.PenaltyListRelationFilter;
+    notifications?: Prisma.NotificationListRelationFilter;
 };
 export type BookingOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -229,6 +230,7 @@ export type BookingOrderByWithRelationInput = {
     readinessProofs?: Prisma.ReadinessProofOrderByRelationAggregateInput;
     priorityAccess?: Prisma.PriorityAccessOrderByWithRelationInput;
     penalties?: Prisma.PenaltyOrderByRelationAggregateInput;
+    notifications?: Prisma.NotificationOrderByRelationAggregateInput;
 };
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -258,6 +260,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
     readinessProofs?: Prisma.ReadinessProofListRelationFilter;
     priorityAccess?: Prisma.XOR<Prisma.PriorityAccessNullableScalarRelationFilter, Prisma.PriorityAccessWhereInput> | null;
     penalties?: Prisma.PenaltyListRelationFilter;
+    notifications?: Prisma.NotificationListRelationFilter;
 }, "id" | "idempotencyKey">;
 export type BookingOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -319,6 +322,7 @@ export type BookingCreateInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateInput = {
     id?: string;
@@ -340,6 +344,7 @@ export type BookingUncheckedCreateInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -361,6 +366,7 @@ export type BookingUpdateInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -382,6 +388,7 @@ export type BookingUncheckedUpdateInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateManyInput = {
     id?: string;
@@ -493,6 +500,10 @@ export type BookingSumOrderByAggregateInput = {
 export type BookingScalarRelationFilter = {
     is?: Prisma.BookingWhereInput;
     isNot?: Prisma.BookingWhereInput;
+};
+export type BookingNullableScalarRelationFilter = {
+    is?: Prisma.BookingWhereInput | null;
+    isNot?: Prisma.BookingWhereInput | null;
 };
 export type BookingCreateNestedManyWithoutCarrierInput = {
     create?: Prisma.XOR<Prisma.BookingCreateWithoutCarrierInput, Prisma.BookingUncheckedCreateWithoutCarrierInput> | Prisma.BookingCreateWithoutCarrierInput[] | Prisma.BookingUncheckedCreateWithoutCarrierInput[];
@@ -757,6 +768,20 @@ export type BookingUpdateOneRequiredWithoutPenaltiesNestedInput = {
     connect?: Prisma.BookingWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutPenaltiesInput, Prisma.BookingUpdateWithoutPenaltiesInput>, Prisma.BookingUncheckedUpdateWithoutPenaltiesInput>;
 };
+export type BookingCreateNestedOneWithoutNotificationsInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutNotificationsInput, Prisma.BookingUncheckedCreateWithoutNotificationsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutNotificationsInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+};
+export type BookingUpdateOneWithoutNotificationsNestedInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutNotificationsInput, Prisma.BookingUncheckedCreateWithoutNotificationsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutNotificationsInput;
+    upsert?: Prisma.BookingUpsertWithoutNotificationsInput;
+    disconnect?: Prisma.BookingWhereInput | boolean;
+    delete?: Prisma.BookingWhereInput | boolean;
+    connect?: Prisma.BookingWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutNotificationsInput, Prisma.BookingUpdateWithoutNotificationsInput>, Prisma.BookingUncheckedUpdateWithoutNotificationsInput>;
+};
 export type BookingCreateWithoutCarrierInput = {
     id?: string;
     status?: $Enums.BookingStatus;
@@ -776,6 +801,7 @@ export type BookingCreateWithoutCarrierInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutCarrierInput = {
     id?: string;
@@ -796,6 +822,7 @@ export type BookingUncheckedCreateWithoutCarrierInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutCarrierInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -856,6 +883,7 @@ export type BookingCreateWithoutTerminalInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTerminalInput = {
     id?: string;
@@ -876,6 +904,7 @@ export type BookingUncheckedCreateWithoutTerminalInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTerminalInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -917,6 +946,7 @@ export type BookingCreateWithoutTimeSlotInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTimeSlotInput = {
     id?: string;
@@ -937,6 +967,7 @@ export type BookingUncheckedCreateWithoutTimeSlotInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTimeSlotInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -978,6 +1009,7 @@ export type BookingCreateWithoutReadinessPredictionsInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutReadinessPredictionsInput = {
     id?: string;
@@ -998,6 +1030,7 @@ export type BookingUncheckedCreateWithoutReadinessPredictionsInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutReadinessPredictionsInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1031,6 +1064,7 @@ export type BookingUpdateWithoutReadinessPredictionsInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutReadinessPredictionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1051,6 +1085,7 @@ export type BookingUncheckedUpdateWithoutReadinessPredictionsInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateWithoutReadinessProofsInput = {
     id?: string;
@@ -1071,6 +1106,7 @@ export type BookingCreateWithoutReadinessProofsInput = {
     readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutReadinessProofsInput = {
     id?: string;
@@ -1091,6 +1127,7 @@ export type BookingUncheckedCreateWithoutReadinessProofsInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutReadinessProofsInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1124,6 +1161,7 @@ export type BookingUpdateWithoutReadinessProofsInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutReadinessProofsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1144,6 +1182,7 @@ export type BookingUncheckedUpdateWithoutReadinessProofsInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateWithoutGateAccessLogsInput = {
     id?: string;
@@ -1164,6 +1203,7 @@ export type BookingCreateWithoutGateAccessLogsInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutGateAccessLogsInput = {
     id?: string;
@@ -1184,6 +1224,7 @@ export type BookingUncheckedCreateWithoutGateAccessLogsInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutGateAccessLogsInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1217,6 +1258,7 @@ export type BookingUpdateWithoutGateAccessLogsInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutGateAccessLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1237,6 +1279,7 @@ export type BookingUncheckedUpdateWithoutGateAccessLogsInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateWithoutContainerInput = {
     id?: string;
@@ -1257,6 +1300,7 @@ export type BookingCreateWithoutContainerInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutContainerInput = {
     id?: string;
@@ -1277,6 +1321,7 @@ export type BookingUncheckedCreateWithoutContainerInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutContainerInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1318,6 +1363,7 @@ export type BookingCreateWithoutTruckInput = {
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTruckInput = {
     id?: string;
@@ -1338,6 +1384,7 @@ export type BookingUncheckedCreateWithoutTruckInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTruckInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1379,6 +1426,7 @@ export type BookingCreateWithoutPriorityAccessInput = {
     readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutPriorityAccessInput = {
     id?: string;
@@ -1399,6 +1447,7 @@ export type BookingUncheckedCreateWithoutPriorityAccessInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutPriorityAccessInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1432,6 +1481,7 @@ export type BookingUpdateWithoutPriorityAccessInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutPriorityAccessInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1452,6 +1502,7 @@ export type BookingUncheckedUpdateWithoutPriorityAccessInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateWithoutPenaltiesInput = {
     id?: string;
@@ -1472,6 +1523,7 @@ export type BookingCreateWithoutPenaltiesInput = {
     readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
     readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutPenaltiesInput = {
     id?: string;
@@ -1492,6 +1544,7 @@ export type BookingUncheckedCreateWithoutPenaltiesInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
     readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutPenaltiesInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -1525,6 +1578,7 @@ export type BookingUpdateWithoutPenaltiesInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutPenaltiesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1545,6 +1599,104 @@ export type BookingUncheckedUpdateWithoutPenaltiesInput = {
     readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
+};
+export type BookingCreateWithoutNotificationsInput = {
+    id?: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
+    terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
+    timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
+    truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+};
+export type BookingUncheckedCreateWithoutNotificationsInput = {
+    id?: string;
+    carrierId: string;
+    terminalId: string;
+    timeSlotId: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    truckId?: string | null;
+    containerId: string;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+};
+export type BookingCreateOrConnectWithoutNotificationsInput = {
+    where: Prisma.BookingWhereUniqueInput;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutNotificationsInput, Prisma.BookingUncheckedCreateWithoutNotificationsInput>;
+};
+export type BookingUpsertWithoutNotificationsInput = {
+    update: Prisma.XOR<Prisma.BookingUpdateWithoutNotificationsInput, Prisma.BookingUncheckedUpdateWithoutNotificationsInput>;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutNotificationsInput, Prisma.BookingUncheckedCreateWithoutNotificationsInput>;
+    where?: Prisma.BookingWhereInput;
+};
+export type BookingUpdateToOneWithWhereWithoutNotificationsInput = {
+    where?: Prisma.BookingWhereInput;
+    data: Prisma.XOR<Prisma.BookingUpdateWithoutNotificationsInput, Prisma.BookingUncheckedUpdateWithoutNotificationsInput>;
+};
+export type BookingUpdateWithoutNotificationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
+    timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
+    truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+};
+export type BookingUncheckedUpdateWithoutNotificationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateManyCarrierInput = {
     id?: string;
@@ -1580,6 +1732,7 @@ export type BookingUpdateWithoutCarrierInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutCarrierInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1600,6 +1753,7 @@ export type BookingUncheckedUpdateWithoutCarrierInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutCarrierInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1650,6 +1804,7 @@ export type BookingUpdateWithoutTerminalInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1670,6 +1825,7 @@ export type BookingUncheckedUpdateWithoutTerminalInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1720,6 +1876,7 @@ export type BookingUpdateWithoutTimeSlotInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTimeSlotInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1740,6 +1897,7 @@ export type BookingUncheckedUpdateWithoutTimeSlotInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTimeSlotInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1790,6 +1948,7 @@ export type BookingUpdateWithoutContainerInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutContainerInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1810,6 +1969,7 @@ export type BookingUncheckedUpdateWithoutContainerInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutContainerInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1860,6 +2020,7 @@ export type BookingUpdateWithoutTruckInput = {
     readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTruckInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1880,6 +2041,7 @@ export type BookingUncheckedUpdateWithoutTruckInput = {
     readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
     priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
     penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTruckInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1901,12 +2063,14 @@ export type BookingCountOutputType = {
     readinessPredictions: number;
     readinessProofs: number;
     penalties: number;
+    notifications: number;
 };
 export type BookingCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     gateAccessLogs?: boolean | BookingCountOutputTypeCountGateAccessLogsArgs;
     readinessPredictions?: boolean | BookingCountOutputTypeCountReadinessPredictionsArgs;
     readinessProofs?: boolean | BookingCountOutputTypeCountReadinessProofsArgs;
     penalties?: boolean | BookingCountOutputTypeCountPenaltiesArgs;
+    notifications?: boolean | BookingCountOutputTypeCountNotificationsArgs;
 };
 export type BookingCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.BookingCountOutputTypeSelect<ExtArgs> | null;
@@ -1922,6 +2086,9 @@ export type BookingCountOutputTypeCountReadinessProofsArgs<ExtArgs extends runti
 };
 export type BookingCountOutputTypeCountPenaltiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.PenaltyWhereInput;
+};
+export type BookingCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.NotificationWhereInput;
 };
 export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -1948,6 +2115,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     readinessProofs?: boolean | Prisma.Booking$readinessProofsArgs<ExtArgs>;
     priorityAccess?: boolean | Prisma.Booking$priorityAccessArgs<ExtArgs>;
     penalties?: boolean | Prisma.Booking$penaltiesArgs<ExtArgs>;
+    notifications?: boolean | Prisma.Booking$notificationsArgs<ExtArgs>;
     _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["booking"]>;
 export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2020,6 +2188,7 @@ export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
     readinessProofs?: boolean | Prisma.Booking$readinessProofsArgs<ExtArgs>;
     priorityAccess?: boolean | Prisma.Booking$priorityAccessArgs<ExtArgs>;
     penalties?: boolean | Prisma.Booking$penaltiesArgs<ExtArgs>;
+    notifications?: boolean | Prisma.Booking$notificationsArgs<ExtArgs>;
     _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2049,6 +2218,7 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         readinessProofs: Prisma.$ReadinessProofPayload<ExtArgs>[];
         priorityAccess: Prisma.$PriorityAccessPayload<ExtArgs> | null;
         penalties: Prisma.$PenaltyPayload<ExtArgs>[];
+        notifications: Prisma.$NotificationPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -2127,6 +2297,7 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
     readinessProofs<T extends Prisma.Booking$readinessProofsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$readinessProofsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReadinessProofPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     priorityAccess<T extends Prisma.Booking$priorityAccessArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$priorityAccessArgs<ExtArgs>>): Prisma.Prisma__PriorityAccessClient<runtime.Types.Result.GetResult<Prisma.$PriorityAccessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     penalties<T extends Prisma.Booking$penaltiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$penaltiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PenaltyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    notifications<T extends Prisma.Booking$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -2302,6 +2473,17 @@ export type Booking$penaltiesArgs<ExtArgs extends runtime.Types.Extensions.Inter
     take?: number;
     skip?: number;
     distinct?: Prisma.PenaltyScalarFieldEnum | Prisma.PenaltyScalarFieldEnum[];
+};
+export type Booking$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.NotificationSelect<ExtArgs> | null;
+    omit?: Prisma.NotificationOmit<ExtArgs> | null;
+    include?: Prisma.NotificationInclude<ExtArgs> | null;
+    where?: Prisma.NotificationWhereInput;
+    orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[];
+    cursor?: Prisma.NotificationWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
 };
 export type BookingDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.BookingSelect<ExtArgs> | null;

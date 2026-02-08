@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { authApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { LogOut, Bell } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
+import { NotificationBell } from '@/components/shared';
 
 export function Topbar() {
   const user = useAuthStore((s) => s.user);
@@ -25,10 +26,7 @@ export function Topbar() {
       <div />
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4.5 w-4.5 text-muted-foreground" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-        </Button>
+        <NotificationBell />
 
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">

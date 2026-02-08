@@ -303,6 +303,7 @@ export class MonetizationService {
       0,
     );
     const isEcoSlot = latestPricing?.isEcoSlot || false;
+    const ecoDiscount = isEcoSlot ? Math.round(basePrice * 0.2 * 100) / 100 : 0;
 
     const totalCharges =
       Math.round((slotPrice + priorityFee + totalPenalties) * 100) / 100;
@@ -311,6 +312,12 @@ export class MonetizationService {
       bookingId,
       terminalName: booking.terminal.name,
       status: booking.status,
+      // Flat properties for frontend compatibility
+      slotCost: slotPrice,
+      ecoDiscount,
+      priorityFee,
+      penalties: totalPenalties,
+      total: totalCharges,
       breakdown: {
         basePrice,
         pricingMultiplier,
@@ -332,5 +339,32 @@ export class MonetizationService {
       totalCharges,
       computedAt: new Date().toISOString(),
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Get All Penalties
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Get all penalties across all bookings.
+   * Used by operators to view penalty history.
+   */
+  async getAllPenalties() {
+    const penalties = await this.prisma.penalty.findMany({
+      include: {
+        booking: {
+          select: {
+            id: true,
+            status: true,
+            container: { select: { containerNumber: true } },
+            truck: { select: { plate: true } },
+            carrier: { select: { email: true } },
+          },
+        },
+      },
+      orderBy: { appliedAt: 'desc' },
+    });
+
+    return penalties;
   }
 }

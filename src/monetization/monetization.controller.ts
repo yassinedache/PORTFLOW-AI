@@ -44,6 +44,16 @@ export class MonetizationController {
 
   // ─── Automated Penalties ──────────────────────────────────────────────
 
+  @Get('monetization/penalties')
+  @Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN)
+  @ApiOperation({
+    summary: 'Get all penalties',
+    description: 'Returns a list of all penalties applied to bookings.',
+  })
+  getAllPenalties() {
+    return this.monetizationService.getAllPenalties();
+  }
+
   @Post('bookings/:id/penalty')
   @Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN)
   @ApiOperation({

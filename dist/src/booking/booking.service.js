@@ -12,16 +12,19 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { QrService } from '../qr/qr.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
+import { NotificationService } from '../notification/notification.service.js';
 let BookingService = class BookingService {
     prisma;
     blockchainService;
     qrService;
     eventsGateway;
-    constructor(prisma, blockchainService, qrService, eventsGateway) {
+    notificationService;
+    constructor(prisma, blockchainService, qrService, eventsGateway, notificationService) {
         this.prisma = prisma;
         this.blockchainService = blockchainService;
         this.qrService = qrService;
         this.eventsGateway = eventsGateway;
+        this.notificationService = notificationService;
     }
     async create(dto, user) {
         if (dto.idempotencyKey) {
@@ -69,10 +72,17 @@ let BookingService = class BookingService {
             include: {
                 terminal: { select: { name: true } },
                 timeSlot: { select: { startTime: true, endTime: true } },
+                carrier: { select: { email: true } },
             },
         });
         this.eventsGateway.emitBookingStatus(booking.id, 'PENDING');
         this.eventsGateway.emitQueueUpdate(dto.terminalId);
+        await this.notificationService.notifyOperatorsOfPendingBooking({
+            id: booking.id,
+            carrier: { email: booking.carrier.email },
+            terminal: { name: booking.terminal.name },
+            timeSlot: { start: booking.timeSlot.startTime },
+        });
         return booking;
     }
     async findMyBookings(userId) {
@@ -146,6 +156,12 @@ let BookingService = class BookingService {
         const qrDataUrl = await this.qrService.generateQrDataUrl(qrToken);
         this.eventsGateway.emitBookingStatus(id, 'CONFIRMED');
         this.eventsGateway.emitQueueUpdate(booking.terminalId);
+        await this.notificationService.notifyCarrierOfApproval({
+            id: booking.id,
+            carrierId: booking.carrierId,
+            terminal: { name: booking.terminal.name },
+            timeSlot: { start: booking.timeSlot.startTime },
+        });
         return { ...updated, qrDataUrl };
     }
     async reject(id, reason) {
@@ -159,6 +175,12 @@ let BookingService = class BookingService {
         });
         this.eventsGateway.emitBookingStatus(id, 'REJECTED');
         this.eventsGateway.emitQueueUpdate(booking.terminalId);
+        await this.notificationService.notifyCarrierOfRejection({
+            id: booking.id,
+            carrierId: booking.carrierId,
+            terminal: { name: booking.terminal.name },
+            timeSlot: { start: booking.timeSlot.startTime },
+        }, reason);
         return { ...updated, rejectionReason: reason };
     }
     async rescheduleOptions(id) {
@@ -218,7 +240,8 @@ BookingService = __decorate([
     __metadata("design:paramtypes", [PrismaService,
         BlockchainService,
         QrService,
-        EventsGateway])
+        EventsGateway,
+        NotificationService])
 ], BookingService);
 export { BookingService };
 //# sourceMappingURL=booking.service.js.map

@@ -103,5 +103,8 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get penalty(): Prisma.PenaltyDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get notification(): Prisma.NotificationDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

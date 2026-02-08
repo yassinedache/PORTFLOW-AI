@@ -202,11 +202,17 @@ let MonetizationService = class MonetizationService {
         const priorityFee = booking.priorityAccess?.fee || 0;
         const totalPenalties = booking.penalties.reduce((sum, p) => sum + p.amount, 0);
         const isEcoSlot = latestPricing?.isEcoSlot || false;
+        const ecoDiscount = isEcoSlot ? Math.round(basePrice * 0.2 * 100) / 100 : 0;
         const totalCharges = Math.round((slotPrice + priorityFee + totalPenalties) * 100) / 100;
         return {
             bookingId,
             terminalName: booking.terminal.name,
             status: booking.status,
+            slotCost: slotPrice,
+            ecoDiscount,
+            priorityFee,
+            penalties: totalPenalties,
+            total: totalCharges,
             breakdown: {
                 basePrice,
                 pricingMultiplier,
@@ -228,6 +234,23 @@ let MonetizationService = class MonetizationService {
             totalCharges,
             computedAt: new Date().toISOString(),
         };
+    }
+    async getAllPenalties() {
+        const penalties = await this.prisma.penalty.findMany({
+            include: {
+                booking: {
+                    select: {
+                        id: true,
+                        status: true,
+                        container: { select: { containerNumber: true } },
+                        truck: { select: { plate: true } },
+                        carrier: { select: { email: true } },
+                    },
+                },
+            },
+            orderBy: { appliedAt: 'desc' },
+        });
+        return penalties;
     }
 };
 MonetizationService = __decorate([

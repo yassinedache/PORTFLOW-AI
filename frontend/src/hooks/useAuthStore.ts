@@ -6,9 +6,11 @@ import { Role } from '@/types';
 interface AuthState {
   user: User | null;
   token: string | null;
+  csrfToken: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, token: string, csrfToken?: string) => void;
   setToken: (token: string) => void;
+  setCsrfToken: (csrfToken: string) => void;
   setUser: (user: User) => void;
   logout: () => void;
   hasRole: (...roles: Role[]) => boolean;
@@ -19,15 +21,30 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      csrfToken: null,
       isAuthenticated: false,
 
-      setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
+      setAuth: (user, token, csrfToken) =>
+        set({
+          user,
+          token,
+          csrfToken: csrfToken ?? null,
+          isAuthenticated: true,
+        }),
 
       setToken: (token) => set({ token }),
 
+      setCsrfToken: (csrfToken) => set({ csrfToken }),
+
       setUser: (user) => set({ user, isAuthenticated: true }),
 
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+      logout: () =>
+        set({
+          user: null,
+          token: null,
+          csrfToken: null,
+          isAuthenticated: false,
+        }),
 
       hasRole: (...roles) => {
         const { user } = get();
@@ -39,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
+        csrfToken: state.csrfToken,
         isAuthenticated: state.isAuthenticated,
       }),
     },

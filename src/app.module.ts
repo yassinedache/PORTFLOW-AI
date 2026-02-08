@@ -26,6 +26,7 @@ import { AuditModule } from './audit/audit.module.js';
 import { CarrierModule } from './carrier/carrier.module.js';
 import { ZoneModule } from './zone/zone.module.js';
 import { MonetizationModule } from './monetization/monetization.module.js';
+import { NotificationModule } from './notification/notification.module.js';
 import { AppController } from './app.controller.js';
 
 @Module({
@@ -82,6 +83,7 @@ import { AppController } from './app.controller.js';
     PublicModule,
     OperatorModule,
     AuditModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

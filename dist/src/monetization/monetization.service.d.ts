@@ -41,6 +41,11 @@ export declare class MonetizationService {
         bookingId: string;
         terminalName: string;
         status: import("../../generated/prisma/enums.js").BookingStatus;
+        slotCost: number;
+        ecoDiscount: number;
+        priorityFee: number;
+        penalties: number;
+        total: number;
         breakdown: {
             basePrice: number;
             pricingMultiplier: number;
@@ -63,4 +68,26 @@ export declare class MonetizationService {
         totalCharges: number;
         computedAt: string;
     }>;
+    getAllPenalties(): Promise<({
+        booking: {
+            container: {
+                containerNumber: string;
+            };
+            truck: {
+                plate: string;
+            } | null;
+            id: string;
+            status: import("../../generated/prisma/enums.js").BookingStatus;
+            carrier: {
+                email: string;
+            };
+        };
+    } & {
+        type: string;
+        id: string;
+        reason: string | null;
+        bookingId: string;
+        amount: number;
+        appliedAt: Date;
+    })[]>;
 }

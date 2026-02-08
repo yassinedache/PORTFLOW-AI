@@ -15,10 +15,10 @@ export declare class AiController {
     }>;
     getHistory(id: string, user: RequestUser): Promise<{
         id: string;
-        sessionId: string;
         role: import("../../generated/prisma/enums.js").AiMessageRole;
         content: string;
         timestamp: Date;
+        sessionId: string;
     }[]>;
     testChat(dto: TestChatDto): Promise<Record<string, any>>;
     getReadiness(bookingId: string): Promise<{

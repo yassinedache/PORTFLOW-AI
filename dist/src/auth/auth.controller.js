@@ -43,7 +43,7 @@ let AuthController = class AuthController {
         res.cookie('csrf-token', csrfToken, {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000,
         });
         return {
@@ -72,7 +72,7 @@ let AuthController = class AuthController {
         res.cookie('csrf-token', csrfToken, {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000,
         });
         return { user: result.user, accessToken: result.accessToken, csrfToken };
@@ -90,7 +90,7 @@ let AuthController = class AuthController {
         res.cookie('csrf-token', csrfToken, {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000,
         });
         return { csrfToken };

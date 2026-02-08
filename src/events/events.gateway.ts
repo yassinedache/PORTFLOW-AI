@@ -110,6 +110,18 @@ export class EventsGateway
     this.server.emit('gate:access', data);
   }
 
+  emitNotification(userId: string, notification: any) {
+    this.server.to(`user:${userId}`).emit('notification:new', notification);
+    // Also emit globally for any component listening
+    this.server.emit('notification:new', { userId, notification });
+  }
+
+  @SubscribeMessage('subscribe:user')
+  handleSubscribeUser(client: Socket, userId: string) {
+    client.join(`user:${userId}`);
+    this.logger.log(`Client ${client.id} subscribed to user:${userId}`);
+  }
+
   @SubscribeMessage('subscribe:truck')
   handleSubscribeTruck(client: Socket, truckId: string) {
     client.join(`truck:${truckId}`);

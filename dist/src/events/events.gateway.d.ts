@@ -32,5 +32,7 @@ export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection
         result: string;
         reason?: string;
     }): void;
+    emitNotification(userId: string, notification: any): void;
+    handleSubscribeUser(client: Socket, userId: string): void;
     handleSubscribeTruck(client: Socket, truckId: string): void;
 }

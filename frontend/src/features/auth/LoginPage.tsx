@@ -38,7 +38,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await authApi.login(data);
-      setAuth(res.user, res.accessToken);
+      setAuth(res.user, res.accessToken, res.csrfToken);
       toast.success('Welcome back!');
       navigate(getDefaultRoute(res.user.role));
     } catch (err: unknown) {

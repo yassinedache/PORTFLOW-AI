@@ -27,3 +27,4 @@ export type MetricDaily = Prisma.MetricDailyModel;
 export type SlotPricing = Prisma.SlotPricingModel;
 export type PriorityAccess = Prisma.PriorityAccessModel;
 export type Penalty = Prisma.PenaltyModel;
+export type Notification = Prisma.NotificationModel;

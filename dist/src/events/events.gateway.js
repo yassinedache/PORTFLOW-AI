@@ -69,6 +69,14 @@ let EventsGateway = EventsGateway_1 = class EventsGateway {
     emitGateAccess(data) {
         this.server.emit('gate:access', data);
     }
+    emitNotification(userId, notification) {
+        this.server.to(`user:${userId}`).emit('notification:new', notification);
+        this.server.emit('notification:new', { userId, notification });
+    }
+    handleSubscribeUser(client, userId) {
+        client.join(`user:${userId}`);
+        this.logger.log(`Client ${client.id} subscribed to user:${userId}`);
+    }
     handleSubscribeTruck(client, truckId) {
         client.join(`truck:${truckId}`);
         this.logger.log(`Client ${client.id} subscribed to truck:${truckId}`);
@@ -90,6 +98,12 @@ __decorate([
     __metadata("design:paramtypes", [Socket, String]),
     __metadata("design:returntype", void 0)
 ], EventsGateway.prototype, "handleSubscribeBooking", null);
+__decorate([
+    SubscribeMessage('subscribe:user'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Socket, String]),
+    __metadata("design:returntype", void 0)
+], EventsGateway.prototype, "handleSubscribeUser", null);
 __decorate([
     SubscribeMessage('subscribe:truck'),
     __metadata("design:type", Function),

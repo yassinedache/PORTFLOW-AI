@@ -28,6 +28,9 @@ let MonetizationController = class MonetizationController {
     enablePriority(bookingId, dto) {
         return this.monetizationService.enablePriority(bookingId, dto.level);
     }
+    getAllPenalties() {
+        return this.monetizationService.getAllPenalties();
+    }
     applyPenalty(bookingId, dto) {
         return this.monetizationService.applyPenalty(bookingId, dto.type, dto.amount, dto.minutesLate);
     }
@@ -60,6 +63,17 @@ __decorate([
     __metadata("design:paramtypes", [String, EnablePriorityDto]),
     __metadata("design:returntype", void 0)
 ], MonetizationController.prototype, "enablePriority", null);
+__decorate([
+    Get('monetization/penalties'),
+    Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN),
+    ApiOperation({
+        summary: 'Get all penalties',
+        description: 'Returns a list of all penalties applied to bookings.',
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], MonetizationController.prototype, "getAllPenalties", null);
 __decorate([
     Post('bookings/:id/penalty'),
     Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN),

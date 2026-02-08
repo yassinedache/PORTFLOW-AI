@@ -9,3 +9,4 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { RouteLoader } from './RouteLoader';
 export { ConfirmDialog } from './ConfirmDialog';
 export { ErrorAlert } from './ErrorAlert';
+export { NotificationBell } from './NotificationBell';

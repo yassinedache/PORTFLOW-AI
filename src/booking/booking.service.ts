@@ -10,6 +10,7 @@ import { CreateBookingDto } from './dto/create-booking.dto.js';
 import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { QrService } from '../qr/qr.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
+import { NotificationService } from '../notification/notification.service.js';
 import { RequestUser } from '../common/interfaces/jwt-payload.interface.js';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class BookingService {
     private readonly blockchainService: BlockchainService,
     private readonly qrService: QrService,
     private readonly eventsGateway: EventsGateway,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(dto: CreateBookingDto, user: RequestUser) {
@@ -77,12 +79,21 @@ export class BookingService {
       include: {
         terminal: { select: { name: true } },
         timeSlot: { select: { startTime: true, endTime: true } },
+        carrier: { select: { email: true } },
       },
     });
 
     // Emit real-time update
     this.eventsGateway.emitBookingStatus(booking.id, 'PENDING');
     this.eventsGateway.emitQueueUpdate(dto.terminalId);
+
+    // Notify operators of new pending booking
+    await this.notificationService.notifyOperatorsOfPendingBooking({
+      id: booking.id,
+      carrier: { email: booking.carrier.email },
+      terminal: { name: booking.terminal.name },
+      timeSlot: { start: booking.timeSlot.startTime },
+    });
 
     return booking;
   }
@@ -181,6 +192,14 @@ export class BookingService {
     this.eventsGateway.emitBookingStatus(id, 'CONFIRMED');
     this.eventsGateway.emitQueueUpdate(booking.terminalId);
 
+    // Notify carrier of approval
+    await this.notificationService.notifyCarrierOfApproval({
+      id: booking.id,
+      carrierId: booking.carrierId,
+      terminal: { name: booking.terminal.name },
+      timeSlot: { start: booking.timeSlot.startTime },
+    });
+
     return { ...updated, qrDataUrl };
   }
 
@@ -200,6 +219,17 @@ export class BookingService {
 
     this.eventsGateway.emitBookingStatus(id, 'REJECTED');
     this.eventsGateway.emitQueueUpdate(booking.terminalId);
+
+    // Notify carrier of rejection
+    await this.notificationService.notifyCarrierOfRejection(
+      {
+        id: booking.id,
+        carrierId: booking.carrierId,
+        terminal: { name: booking.terminal.name },
+        timeSlot: { start: booking.timeSlot.startTime },
+      },
+      reason,
+    );
 
     return { ...updated, rejectionReason: reason };
   }

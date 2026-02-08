@@ -5,3 +5,5 @@ export { operatorApi } from './operator';
 export { gateApi } from './gate';
 export { assistantApi } from './assistant';
 export { publicApi } from './public';
+export { notificationApi } from './notification';
+export type { Notification, NotificationsResponse } from './notification';

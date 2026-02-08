@@ -48,7 +48,8 @@ export const ModelName = {
     MetricDaily: 'MetricDaily',
     SlotPricing: 'SlotPricing',
     PriorityAccess: 'PriorityAccess',
-    Penalty: 'Penalty'
+    Penalty: 'Penalty',
+    Notification: 'Notification'
 };
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -252,6 +253,16 @@ export const PenaltyScalarFieldEnum = {
     amount: 'amount',
     reason: 'reason',
     appliedAt: 'appliedAt'
+};
+export const NotificationScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    type: 'type',
+    title: 'title',
+    message: 'message',
+    bookingId: 'bookingId',
+    read: 'read',
+    createdAt: 'createdAt'
 };
 export const SortOrder = {
     asc: 'asc',

@@ -14,16 +14,19 @@ export const apiClient = axios.create({
 
 // ── Request Interceptor: attach JWT + CSRF ──
 apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const { token, csrfToken: storedCsrf } = useAuthStore.getState();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Read CSRF token from cookie
-  const csrfToken = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('csrf-token='))
-    ?.split('=')[1];
+  // Use CSRF token from store first, fallback to cookie
+  let csrfToken: string | null | undefined = storedCsrf;
+  if (!csrfToken) {
+    csrfToken = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('csrf-token='))
+      ?.split('=')[1];
+  }
 
   if (
     csrfToken &&
@@ -52,8 +55,12 @@ apiClient.interceptors.response.use(
             { withCredentials: true },
           );
           const newToken = refreshRes.data?.accessToken;
+          const newCsrf = refreshRes.data?.csrfToken;
           if (newToken) {
             useAuthStore.getState().setToken(newToken);
+            if (newCsrf) {
+              useAuthStore.getState().setCsrfToken(newCsrf);
+            }
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return apiClient(originalRequest);
           }
