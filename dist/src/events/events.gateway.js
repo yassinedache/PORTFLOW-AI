@@ -48,15 +48,26 @@ let EventsGateway = EventsGateway_1 = class EventsGateway {
     }
     emitAlert(alert) {
         if (alert.terminalId) {
-            this.server
-                .to(`terminal:${alert.terminalId}`)
-                .emit('alert:new', alert);
+            this.server.to(`terminal:${alert.terminalId}`).emit('alert:new', alert);
         }
         this.server.emit('alert:new', alert);
     }
     emitTruckLocation(data) {
         this.server.emit('truck:location', data);
         this.server.to(`truck:${data.truckId}`).emit('truck:location', data);
+    }
+    emitBookingAtRisk(bookingId, data) {
+        const payload = { bookingId, ...data };
+        this.server.to(`booking:${bookingId}`).emit('booking:at_risk', payload);
+        this.server.emit('booking:at_risk', payload);
+    }
+    emitBookingReady(bookingId, data) {
+        const payload = { bookingId, ...data };
+        this.server.to(`booking:${bookingId}`).emit('booking:ready', payload);
+        this.server.emit('booking:ready', payload);
+    }
+    emitGateAccess(data) {
+        this.server.emit('gate:access', data);
     }
     handleSubscribeTruck(client, truckId) {
         client.join(`truck:${truckId}`);

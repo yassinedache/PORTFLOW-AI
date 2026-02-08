@@ -10,10 +10,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Param, UseGuards, } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { BookingService } from './booking.service.js';
-import { CreateBookingDto, BookingActionDto } from './dto/create-booking.dto.js';
+import { CreateBookingDto, BookingActionDto, } from './dto/create-booking.dto.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
@@ -28,6 +28,9 @@ let BookingController = class BookingController {
     }
     findMyBookings(userId) {
         return this.bookingService.findMyBookings(userId);
+    }
+    rescheduleOptions(id) {
+        return this.bookingService.rescheduleOptions(id);
     }
     findOne(id) {
         return this.bookingService.findOne(id);
@@ -61,6 +64,17 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "findMyBookings", null);
+__decorate([
+    Get('bookings/:id/reschedule-options'),
+    Roles(Role.CARRIER, Role.TERMINAL_OPERATOR),
+    ApiOperation({
+        summary: 'Get alternative time slots for rescheduling a booking',
+    }),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], BookingController.prototype, "rescheduleOptions", null);
 __decorate([
     Get('bookings/:id'),
     Roles(Role.CARRIER, Role.TERMINAL_OPERATOR, Role.PORT_ADMIN),

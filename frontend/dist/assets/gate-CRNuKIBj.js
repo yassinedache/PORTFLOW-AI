@@ -1,0 +1,1 @@
+import{p as t}from"./index-CEOHBZb-.js";const i={scan:async a=>(await t.post("/gate/scan",a)).data,getHistory:async()=>{const a=await t.get("/admin/audit-logs",{params:{entity:"GateAccessLog",limit:100}});return a.data.data||a.data}};export{i as g};

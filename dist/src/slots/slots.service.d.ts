@@ -24,8 +24,8 @@ export declare class SlotsService {
         startTime: Date;
         endTime: Date;
         capacity: number;
-        booked: number;
-        available: number;
+        bookedCount: number;
+        availableCount: number;
     }[]>;
     getHeatmap(terminalId?: string): Promise<{
         slotId: string;

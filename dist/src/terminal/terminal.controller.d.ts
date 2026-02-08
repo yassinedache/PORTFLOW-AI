@@ -5,8 +5,8 @@ export declare class TerminalController {
     constructor(terminalService: TerminalService);
     create(dto: CreateTerminalDto): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         location: string;
         isActive: boolean;
     }>;
@@ -22,8 +22,8 @@ export declare class TerminalController {
         }[];
     } & {
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         location: string;
         isActive: boolean;
     })[]>;
@@ -43,22 +43,22 @@ export declare class TerminalController {
         }[];
     } & {
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         location: string;
         isActive: boolean;
     }>;
     update(id: string, dto: UpdateTerminalDto): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         location: string;
         isActive: boolean;
     }>;
     remove(id: string): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         location: string;
         isActive: boolean;
     }>;

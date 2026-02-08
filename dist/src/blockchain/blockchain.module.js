@@ -6,10 +6,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { Module } from '@nestjs/common';
 import { BlockchainService } from './blockchain.service.js';
+import { BlockchainController } from './blockchain.controller.js';
+import { PrismaModule } from '../prisma/prisma.module.js';
 let BlockchainModule = class BlockchainModule {
 };
 BlockchainModule = __decorate([
     Module({
+        imports: [PrismaModule],
+        controllers: [BlockchainController],
         providers: [BlockchainService],
         exports: [BlockchainService],
     })

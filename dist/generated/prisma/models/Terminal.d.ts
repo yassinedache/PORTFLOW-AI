@@ -101,6 +101,7 @@ export type TerminalWhereInput = {
     bookings?: Prisma.BookingListRelationFilter;
     metrics?: Prisma.MetricDailyListRelationFilter;
     zones?: Prisma.ZoneListRelationFilter;
+    containers?: Prisma.ContainerListRelationFilter;
 };
 export type TerminalOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -113,6 +114,7 @@ export type TerminalOrderByWithRelationInput = {
     bookings?: Prisma.BookingOrderByRelationAggregateInput;
     metrics?: Prisma.MetricDailyOrderByRelationAggregateInput;
     zones?: Prisma.ZoneOrderByRelationAggregateInput;
+    containers?: Prisma.ContainerOrderByRelationAggregateInput;
 };
 export type TerminalWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -128,6 +130,7 @@ export type TerminalWhereUniqueInput = Prisma.AtLeast<{
     bookings?: Prisma.BookingListRelationFilter;
     metrics?: Prisma.MetricDailyListRelationFilter;
     zones?: Prisma.ZoneListRelationFilter;
+    containers?: Prisma.ContainerListRelationFilter;
 }, "id">;
 export type TerminalOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -160,6 +163,7 @@ export type TerminalCreateInput = {
     bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateInput = {
     id?: string;
@@ -172,6 +176,7 @@ export type TerminalUncheckedCreateInput = {
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -184,6 +189,7 @@ export type TerminalUpdateInput = {
     bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -196,6 +202,7 @@ export type TerminalUncheckedUpdateInput = {
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalCreateManyInput = {
     id?: string;
@@ -243,6 +250,10 @@ export type TerminalScalarRelationFilter = {
     is?: Prisma.TerminalWhereInput;
     isNot?: Prisma.TerminalWhereInput;
 };
+export type TerminalNullableScalarRelationFilter = {
+    is?: Prisma.TerminalWhereInput | null;
+    isNot?: Prisma.TerminalWhereInput | null;
+};
 export type BoolFieldUpdateOperationsInput = {
     set?: boolean;
 };
@@ -282,6 +293,20 @@ export type TerminalUpdateOneRequiredWithoutBookingsNestedInput = {
     connect?: Prisma.TerminalWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.TerminalUpdateToOneWithWhereWithoutBookingsInput, Prisma.TerminalUpdateWithoutBookingsInput>, Prisma.TerminalUncheckedUpdateWithoutBookingsInput>;
 };
+export type TerminalCreateNestedOneWithoutContainersInput = {
+    create?: Prisma.XOR<Prisma.TerminalCreateWithoutContainersInput, Prisma.TerminalUncheckedCreateWithoutContainersInput>;
+    connectOrCreate?: Prisma.TerminalCreateOrConnectWithoutContainersInput;
+    connect?: Prisma.TerminalWhereUniqueInput;
+};
+export type TerminalUpdateOneWithoutContainersNestedInput = {
+    create?: Prisma.XOR<Prisma.TerminalCreateWithoutContainersInput, Prisma.TerminalUncheckedCreateWithoutContainersInput>;
+    connectOrCreate?: Prisma.TerminalCreateOrConnectWithoutContainersInput;
+    upsert?: Prisma.TerminalUpsertWithoutContainersInput;
+    disconnect?: Prisma.TerminalWhereInput | boolean;
+    delete?: Prisma.TerminalWhereInput | boolean;
+    connect?: Prisma.TerminalWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.TerminalUpdateToOneWithWhereWithoutContainersInput, Prisma.TerminalUpdateWithoutContainersInput>, Prisma.TerminalUncheckedUpdateWithoutContainersInput>;
+};
 export type TerminalCreateNestedOneWithoutZonesInput = {
     create?: Prisma.XOR<Prisma.TerminalCreateWithoutZonesInput, Prisma.TerminalUncheckedCreateWithoutZonesInput>;
     connectOrCreate?: Prisma.TerminalCreateOrConnectWithoutZonesInput;
@@ -316,6 +341,7 @@ export type TerminalCreateWithoutGatesInput = {
     bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateWithoutGatesInput = {
     id?: string;
@@ -327,6 +353,7 @@ export type TerminalUncheckedCreateWithoutGatesInput = {
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalCreateOrConnectWithoutGatesInput = {
     where: Prisma.TerminalWhereUniqueInput;
@@ -351,6 +378,7 @@ export type TerminalUpdateWithoutGatesInput = {
     bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateWithoutGatesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -362,6 +390,7 @@ export type TerminalUncheckedUpdateWithoutGatesInput = {
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalCreateWithoutTimeSlotsInput = {
     id?: string;
@@ -373,6 +402,7 @@ export type TerminalCreateWithoutTimeSlotsInput = {
     bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateWithoutTimeSlotsInput = {
     id?: string;
@@ -384,6 +414,7 @@ export type TerminalUncheckedCreateWithoutTimeSlotsInput = {
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalCreateOrConnectWithoutTimeSlotsInput = {
     where: Prisma.TerminalWhereUniqueInput;
@@ -408,6 +439,7 @@ export type TerminalUpdateWithoutTimeSlotsInput = {
     bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateWithoutTimeSlotsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -419,6 +451,7 @@ export type TerminalUncheckedUpdateWithoutTimeSlotsInput = {
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalCreateWithoutBookingsInput = {
     id?: string;
@@ -430,6 +463,7 @@ export type TerminalCreateWithoutBookingsInput = {
     timeSlots?: Prisma.TimeSlotCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateWithoutBookingsInput = {
     id?: string;
@@ -441,6 +475,7 @@ export type TerminalUncheckedCreateWithoutBookingsInput = {
     timeSlots?: Prisma.TimeSlotUncheckedCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalCreateOrConnectWithoutBookingsInput = {
     where: Prisma.TerminalWhereUniqueInput;
@@ -465,6 +500,7 @@ export type TerminalUpdateWithoutBookingsInput = {
     timeSlots?: Prisma.TimeSlotUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateWithoutBookingsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -474,6 +510,68 @@ export type TerminalUncheckedUpdateWithoutBookingsInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     gates?: Prisma.GateUncheckedUpdateManyWithoutTerminalNestedInput;
     timeSlots?: Prisma.TimeSlotUncheckedUpdateManyWithoutTerminalNestedInput;
+    metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
+    zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
+};
+export type TerminalCreateWithoutContainersInput = {
+    id?: string;
+    name: string;
+    location: string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    gates?: Prisma.GateCreateNestedManyWithoutTerminalInput;
+    timeSlots?: Prisma.TimeSlotCreateNestedManyWithoutTerminalInput;
+    bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
+    metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
+    zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+};
+export type TerminalUncheckedCreateWithoutContainersInput = {
+    id?: string;
+    name: string;
+    location: string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    gates?: Prisma.GateUncheckedCreateNestedManyWithoutTerminalInput;
+    timeSlots?: Prisma.TimeSlotUncheckedCreateNestedManyWithoutTerminalInput;
+    bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
+    metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
+    zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+};
+export type TerminalCreateOrConnectWithoutContainersInput = {
+    where: Prisma.TerminalWhereUniqueInput;
+    create: Prisma.XOR<Prisma.TerminalCreateWithoutContainersInput, Prisma.TerminalUncheckedCreateWithoutContainersInput>;
+};
+export type TerminalUpsertWithoutContainersInput = {
+    update: Prisma.XOR<Prisma.TerminalUpdateWithoutContainersInput, Prisma.TerminalUncheckedUpdateWithoutContainersInput>;
+    create: Prisma.XOR<Prisma.TerminalCreateWithoutContainersInput, Prisma.TerminalUncheckedCreateWithoutContainersInput>;
+    where?: Prisma.TerminalWhereInput;
+};
+export type TerminalUpdateToOneWithWhereWithoutContainersInput = {
+    where?: Prisma.TerminalWhereInput;
+    data: Prisma.XOR<Prisma.TerminalUpdateWithoutContainersInput, Prisma.TerminalUncheckedUpdateWithoutContainersInput>;
+};
+export type TerminalUpdateWithoutContainersInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    location?: Prisma.StringFieldUpdateOperationsInput | string;
+    isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    gates?: Prisma.GateUpdateManyWithoutTerminalNestedInput;
+    timeSlots?: Prisma.TimeSlotUpdateManyWithoutTerminalNestedInput;
+    bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
+    metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
+    zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+};
+export type TerminalUncheckedUpdateWithoutContainersInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    location?: Prisma.StringFieldUpdateOperationsInput | string;
+    isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    gates?: Prisma.GateUncheckedUpdateManyWithoutTerminalNestedInput;
+    timeSlots?: Prisma.TimeSlotUncheckedUpdateManyWithoutTerminalNestedInput;
+    bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
 };
@@ -487,6 +585,7 @@ export type TerminalCreateWithoutZonesInput = {
     timeSlots?: Prisma.TimeSlotCreateNestedManyWithoutTerminalInput;
     bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateWithoutZonesInput = {
     id?: string;
@@ -498,6 +597,7 @@ export type TerminalUncheckedCreateWithoutZonesInput = {
     timeSlots?: Prisma.TimeSlotUncheckedCreateNestedManyWithoutTerminalInput;
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
     metrics?: Prisma.MetricDailyUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalCreateOrConnectWithoutZonesInput = {
     where: Prisma.TerminalWhereUniqueInput;
@@ -522,6 +622,7 @@ export type TerminalUpdateWithoutZonesInput = {
     timeSlots?: Prisma.TimeSlotUpdateManyWithoutTerminalNestedInput;
     bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateWithoutZonesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -533,6 +634,7 @@ export type TerminalUncheckedUpdateWithoutZonesInput = {
     timeSlots?: Prisma.TimeSlotUncheckedUpdateManyWithoutTerminalNestedInput;
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     metrics?: Prisma.MetricDailyUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalCreateWithoutMetricsInput = {
     id?: string;
@@ -544,6 +646,7 @@ export type TerminalCreateWithoutMetricsInput = {
     timeSlots?: Prisma.TimeSlotCreateNestedManyWithoutTerminalInput;
     bookings?: Prisma.BookingCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalUncheckedCreateWithoutMetricsInput = {
     id?: string;
@@ -555,6 +658,7 @@ export type TerminalUncheckedCreateWithoutMetricsInput = {
     timeSlots?: Prisma.TimeSlotUncheckedCreateNestedManyWithoutTerminalInput;
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTerminalInput;
     zones?: Prisma.ZoneUncheckedCreateNestedManyWithoutTerminalInput;
+    containers?: Prisma.ContainerUncheckedCreateNestedManyWithoutTerminalInput;
 };
 export type TerminalCreateOrConnectWithoutMetricsInput = {
     where: Prisma.TerminalWhereUniqueInput;
@@ -579,6 +683,7 @@ export type TerminalUpdateWithoutMetricsInput = {
     timeSlots?: Prisma.TimeSlotUpdateManyWithoutTerminalNestedInput;
     bookings?: Prisma.BookingUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalUncheckedUpdateWithoutMetricsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -590,6 +695,7 @@ export type TerminalUncheckedUpdateWithoutMetricsInput = {
     timeSlots?: Prisma.TimeSlotUncheckedUpdateManyWithoutTerminalNestedInput;
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTerminalNestedInput;
     zones?: Prisma.ZoneUncheckedUpdateManyWithoutTerminalNestedInput;
+    containers?: Prisma.ContainerUncheckedUpdateManyWithoutTerminalNestedInput;
 };
 export type TerminalCountOutputType = {
     gates: number;
@@ -597,6 +703,7 @@ export type TerminalCountOutputType = {
     bookings: number;
     metrics: number;
     zones: number;
+    containers: number;
 };
 export type TerminalCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     gates?: boolean | TerminalCountOutputTypeCountGatesArgs;
@@ -604,6 +711,7 @@ export type TerminalCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
     bookings?: boolean | TerminalCountOutputTypeCountBookingsArgs;
     metrics?: boolean | TerminalCountOutputTypeCountMetricsArgs;
     zones?: boolean | TerminalCountOutputTypeCountZonesArgs;
+    containers?: boolean | TerminalCountOutputTypeCountContainersArgs;
 };
 export type TerminalCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TerminalCountOutputTypeSelect<ExtArgs> | null;
@@ -623,6 +731,9 @@ export type TerminalCountOutputTypeCountMetricsArgs<ExtArgs extends runtime.Type
 export type TerminalCountOutputTypeCountZonesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ZoneWhereInput;
 };
+export type TerminalCountOutputTypeCountContainersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ContainerWhereInput;
+};
 export type TerminalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     name?: boolean;
@@ -634,6 +745,7 @@ export type TerminalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     bookings?: boolean | Prisma.Terminal$bookingsArgs<ExtArgs>;
     metrics?: boolean | Prisma.Terminal$metricsArgs<ExtArgs>;
     zones?: boolean | Prisma.Terminal$zonesArgs<ExtArgs>;
+    containers?: boolean | Prisma.Terminal$containersArgs<ExtArgs>;
     _count?: boolean | Prisma.TerminalCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["terminal"]>;
 export type TerminalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -664,6 +776,7 @@ export type TerminalInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
     bookings?: boolean | Prisma.Terminal$bookingsArgs<ExtArgs>;
     metrics?: boolean | Prisma.Terminal$metricsArgs<ExtArgs>;
     zones?: boolean | Prisma.Terminal$zonesArgs<ExtArgs>;
+    containers?: boolean | Prisma.Terminal$containersArgs<ExtArgs>;
     _count?: boolean | Prisma.TerminalCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type TerminalIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {};
@@ -676,6 +789,7 @@ export type $TerminalPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
         bookings: Prisma.$BookingPayload<ExtArgs>[];
         metrics: Prisma.$MetricDailyPayload<ExtArgs>[];
         zones: Prisma.$ZonePayload<ExtArgs>[];
+        containers: Prisma.$ContainerPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -740,6 +854,7 @@ export interface Prisma__TerminalClient<T, Null = never, ExtArgs extends runtime
     bookings<T extends Prisma.Terminal$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Terminal$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     metrics<T extends Prisma.Terminal$metricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Terminal$metricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MetricDailyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     zones<T extends Prisma.Terminal$zonesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Terminal$zonesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ZonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    containers<T extends Prisma.Terminal$containersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Terminal$containersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContainerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -903,6 +1018,17 @@ export type Terminal$zonesArgs<ExtArgs extends runtime.Types.Extensions.Internal
     take?: number;
     skip?: number;
     distinct?: Prisma.ZoneScalarFieldEnum | Prisma.ZoneScalarFieldEnum[];
+};
+export type Terminal$containersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ContainerSelect<ExtArgs> | null;
+    omit?: Prisma.ContainerOmit<ExtArgs> | null;
+    include?: Prisma.ContainerInclude<ExtArgs> | null;
+    where?: Prisma.ContainerWhereInput;
+    orderBy?: Prisma.ContainerOrderByWithRelationInput | Prisma.ContainerOrderByWithRelationInput[];
+    cursor?: Prisma.ContainerWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ContainerScalarFieldEnum | Prisma.ContainerScalarFieldEnum[];
 };
 export type TerminalDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TerminalSelect<ExtArgs> | null;

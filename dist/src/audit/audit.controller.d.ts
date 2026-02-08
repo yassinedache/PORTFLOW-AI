@@ -6,18 +6,18 @@ export declare class AuditController {
     getAuditLogs(page?: string, limit?: string, userId?: string, entity?: string, action?: string): Promise<{
         data: ({
             user: {
-                id: string;
                 email: string;
                 role: Role;
+                id: string;
             } | null;
         } & {
             id: string;
             userId: string | null;
-            timestamp: Date;
             action: string;
             entity: string;
             entityId: string | null;
             meta: import("@prisma/client/runtime/client").JsonValue | null;
+            timestamp: Date;
         })[];
         pagination: {
             page: number;
@@ -46,8 +46,8 @@ export declare class AuditController {
             id: string;
             terminalId: string;
             date: Date;
-            avgWaitingTime: number;
             totalBookings: number;
+            avgWaitingTime: number;
             revenue: number;
         })[];
     }>;

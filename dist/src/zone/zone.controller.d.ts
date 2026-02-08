@@ -9,12 +9,12 @@ export declare class ZoneController {
             name: string;
         };
     } & {
+        type: string;
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         isActive: boolean;
         terminalId: string;
-        type: string;
         maxTrucks: number;
     }>;
     findAll(terminalId?: string): Promise<({
@@ -23,12 +23,12 @@ export declare class ZoneController {
             name: string;
         };
     } & {
+        type: string;
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         isActive: boolean;
         terminalId: string;
-        type: string;
         maxTrucks: number;
     })[]>;
     findOne(id: string): Promise<{
@@ -37,12 +37,12 @@ export declare class ZoneController {
             name: string;
         };
     } & {
+        type: string;
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         isActive: boolean;
         terminalId: string;
-        type: string;
         maxTrucks: number;
     }>;
     update(id: string, dto: UpdateZoneDto): Promise<{
@@ -51,12 +51,12 @@ export declare class ZoneController {
             name: string;
         };
     } & {
+        type: string;
         id: string;
-        name: string;
         createdAt: Date;
+        name: string;
         isActive: boolean;
         terminalId: string;
-        type: string;
         maxTrucks: number;
     }>;
     remove(id: string): Promise<{

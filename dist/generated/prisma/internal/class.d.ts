@@ -49,6 +49,15 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get booking(): Prisma.BookingDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get readinessPrediction(): Prisma.ReadinessPredictionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get readinessProof(): Prisma.ReadinessProofDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get blockchainProof(): Prisma.BlockchainProofDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get gateAccessLog(): Prisma.GateAccessLogDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
@@ -83,6 +92,15 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     get metricDaily(): Prisma.MetricDailyDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get slotPricing(): Prisma.SlotPricingDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get priorityAccess(): Prisma.PriorityAccessDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get penalty(): Prisma.PenaltyDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
 }

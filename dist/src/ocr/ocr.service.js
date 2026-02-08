@@ -13,8 +13,15 @@ import { PrismaService } from '../prisma/prisma.service.js';
 let OcrService = OcrService_1 = class OcrService {
     prisma;
     logger = new Logger(OcrService_1.name);
+    pendingTimers = new Set();
     constructor(prisma) {
         this.prisma = prisma;
+    }
+    onModuleDestroy() {
+        for (const timer of this.pendingTimers) {
+            clearTimeout(timer);
+        }
+        this.pendingTimers.clear();
     }
     async uploadBol(userId, file) {
         const document = await this.prisma.document.create({
@@ -51,8 +58,9 @@ let OcrService = OcrService_1 = class OcrService {
             throw new NotFoundException('OCR job not found');
         return job;
     }
-    async simulateOcrProcessing(jobId) {
-        setTimeout(async () => {
+    simulateOcrProcessing(jobId) {
+        const t1 = setTimeout(async () => {
+            this.pendingTimers.delete(t1);
             try {
                 await this.prisma.ocrJob.update({
                     where: { id: jobId },
@@ -60,7 +68,8 @@ let OcrService = OcrService_1 = class OcrService {
                         status: 'PROCESSING',
                     },
                 });
-                setTimeout(async () => {
+                const t2 = setTimeout(async () => {
+                    this.pendingTimers.delete(t2);
                     try {
                         await this.prisma.ocrJob.update({
                             where: { id: jobId },
@@ -83,11 +92,13 @@ let OcrService = OcrService_1 = class OcrService {
                         this.logger.error(`OCR completion error: ${err}`);
                     }
                 }, 5000);
+                this.pendingTimers.add(t2);
             }
             catch (err) {
                 this.logger.error(`OCR processing error: ${err}`);
             }
         }, 2000);
+        this.pendingTimers.add(t1);
     }
 };
 OcrService = OcrService_1 = __decorate([

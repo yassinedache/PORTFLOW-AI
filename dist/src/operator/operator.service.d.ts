@@ -1,10 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service.js';
+import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
 import { CapacityOverrideDto } from './dto/capacity-override.dto.js';
 export declare class OperatorService {
     private readonly prisma;
+    private readonly blockchainService;
     private readonly eventsGateway;
-    constructor(prisma: PrismaService, eventsGateway: EventsGateway);
+    constructor(prisma: PrismaService, blockchainService: BlockchainService, eventsGateway: EventsGateway);
     getQueue(terminalId?: string): Promise<({
         terminal: {
             id: string;
@@ -18,22 +20,23 @@ export declare class OperatorService {
             plate: string;
         } | null;
         carrier: {
-            id: string;
             email: string;
+            id: string;
         };
     } & {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     })[]>;
     overrideCapacity(dto: CapacityOverrideDto): Promise<{
@@ -55,10 +58,10 @@ export declare class OperatorService {
             };
         } & {
             id: string;
-            bookingId: string;
-            gateId: string;
             result: import("../../generated/prisma/enums.js").GateAccessResult;
             reason: string | null;
+            bookingId: string;
+            gateId: string;
             scannedAt: Date;
         })[];
         capacityAlerts: {
@@ -70,5 +73,39 @@ export declare class OperatorService {
             capacity: number;
             utilization: number;
         }[];
+    }>;
+    private static readonly VALID_TRANSITIONS;
+    updateContainerStatus(containerId: string, newStatus: string): Promise<{
+        id: string;
+        createdAt: Date;
+        terminalId: string | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").ContainerStatus;
+        containerNumber: string;
+        lastUpdatedAt: Date | null;
+    }>;
+    confirmReadiness(bookingId: string, userId?: string): Promise<{
+        terminal: {
+            name: string;
+        };
+        timeSlot: {
+            startTime: Date;
+            endTime: Date;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        terminalId: string;
+        timeSlotId: string;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
+        price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
+        qrToken: string | null;
+        blockchainHash: string | null;
+        validatedAt: Date | null;
     }>;
 }

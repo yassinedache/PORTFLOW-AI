@@ -25,6 +25,7 @@ import { OperatorModule } from './operator/operator.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { CarrierModule } from './carrier/carrier.module.js';
 import { ZoneModule } from './zone/zone.module.js';
+import { MonetizationModule } from './monetization/monetization.module.js';
 import { AppController } from './app.controller.js';
 
 @Module({
@@ -39,18 +40,18 @@ import { AppController } from './app.controller.js';
     ThrottlerModule.forRoot([
       {
         name: 'short',
-        ttl: 1000,   // 1 second
-        limit: 10,   // 10 requests per second
+        ttl: 1000, // 1 second
+        limit: 10, // 10 requests per second
       },
       {
         name: 'medium',
-        ttl: 60000,  // 1 minute
-        limit: 100,  // 100 requests per minute
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
       },
       {
         name: 'long',
         ttl: 3600000, // 1 hour
-        limit: 1000,  // 1000 requests per hour
+        limit: 1000, // 1000 requests per hour
       },
     ]),
 
@@ -69,6 +70,9 @@ import { AppController } from './app.controller.js';
     GateAccessModule,
     CarrierModule,
     ZoneModule,
+
+    // ─── Business & Monetization ───────────────────────────────────────
+    MonetizationModule,
 
     // ─── Intelligence ─────────────────────────────────────────────────
     AiModule,

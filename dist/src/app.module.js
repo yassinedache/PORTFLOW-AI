@@ -29,6 +29,7 @@ import { OperatorModule } from './operator/operator.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { CarrierModule } from './carrier/carrier.module.js';
 import { ZoneModule } from './zone/zone.module.js';
+import { MonetizationModule } from './monetization/monetization.module.js';
 import { AppController } from './app.controller.js';
 let AppModule = class AppModule {
 };
@@ -68,6 +69,7 @@ AppModule = __decorate([
             GateAccessModule,
             CarrierModule,
             ZoneModule,
+            MonetizationModule,
             AiModule,
             OcrModule,
             PublicModule,

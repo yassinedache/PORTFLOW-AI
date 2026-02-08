@@ -10,16 +10,16 @@ export declare class OcrController {
     }>;
     getOcrJobStatus(id: string): Promise<{
         document: {
-            id: string;
             type: "BILL_OF_LADING";
+            id: string;
             fileName: string;
         };
     } & {
         id: string;
         createdAt: Date;
         status: import("../../generated/prisma/enums.js").OcrJobStatus;
-        documentId: string;
         resultJson: import("@prisma/client/runtime/client").JsonValue | null;
         updatedAt: Date;
+        documentId: string;
     }>;
 }

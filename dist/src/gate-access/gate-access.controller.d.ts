@@ -15,10 +15,10 @@ export declare class GateAccessController {
         };
     } & {
         id: string;
-        bookingId: string;
-        gateId: string;
         result: import("../../generated/prisma/enums.js").GateAccessResult;
         reason: string | null;
+        bookingId: string;
+        gateId: string;
         scannedAt: Date;
     }) | {
         result: "ALLOWED" | "DENIED";

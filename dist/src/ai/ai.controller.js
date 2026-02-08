@@ -33,6 +33,9 @@ let AiController = class AiController {
     testChat(dto) {
         return this.aiService.testChat(dto.message);
     }
+    getReadiness(bookingId) {
+        return this.aiService.getReadinessPrediction(bookingId);
+    }
     recommendSlot(dto) {
         return this.aiService.recommendSlot(dto.message);
     }
@@ -74,6 +77,17 @@ __decorate([
     __metadata("design:paramtypes", [TestChatDto]),
     __metadata("design:returntype", void 0)
 ], AiController.prototype, "testChat", null);
+__decorate([
+    Get('readiness/:bookingId'),
+    ApiOperation({
+        summary: 'AI-powered readiness prediction for a booking',
+        description: 'Returns readiness probability, blockers, and risk level.',
+    }),
+    __param(0, Param('bookingId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "getReadiness", null);
 __decorate([
     Post('test/recommend-slot'),
     ApiOperation({

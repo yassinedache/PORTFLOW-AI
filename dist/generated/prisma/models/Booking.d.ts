@@ -10,9 +10,11 @@ export type AggregateBooking = {
     _max: BookingMaxAggregateOutputType | null;
 };
 export type BookingAvgAggregateOutputType = {
+    readinessScore: number | null;
     price: number | null;
 };
 export type BookingSumAggregateOutputType = {
+    readinessScore: number | null;
     price: number | null;
 };
 export type BookingMinAggregateOutputType = {
@@ -21,6 +23,7 @@ export type BookingMinAggregateOutputType = {
     terminalId: string | null;
     timeSlotId: string | null;
     status: $Enums.BookingStatus | null;
+    readinessScore: number | null;
     price: number | null;
     qrToken: string | null;
     blockchainHash: string | null;
@@ -36,6 +39,7 @@ export type BookingMaxAggregateOutputType = {
     terminalId: string | null;
     timeSlotId: string | null;
     status: $Enums.BookingStatus | null;
+    readinessScore: number | null;
     price: number | null;
     qrToken: string | null;
     blockchainHash: string | null;
@@ -51,6 +55,7 @@ export type BookingCountAggregateOutputType = {
     terminalId: number;
     timeSlotId: number;
     status: number;
+    readinessScore: number;
     price: number;
     qrToken: number;
     blockchainHash: number;
@@ -62,9 +67,11 @@ export type BookingCountAggregateOutputType = {
     _all: number;
 };
 export type BookingAvgAggregateInputType = {
+    readinessScore?: true;
     price?: true;
 };
 export type BookingSumAggregateInputType = {
+    readinessScore?: true;
     price?: true;
 };
 export type BookingMinAggregateInputType = {
@@ -73,6 +80,7 @@ export type BookingMinAggregateInputType = {
     terminalId?: true;
     timeSlotId?: true;
     status?: true;
+    readinessScore?: true;
     price?: true;
     qrToken?: true;
     blockchainHash?: true;
@@ -88,6 +96,7 @@ export type BookingMaxAggregateInputType = {
     terminalId?: true;
     timeSlotId?: true;
     status?: true;
+    readinessScore?: true;
     price?: true;
     qrToken?: true;
     blockchainHash?: true;
@@ -103,6 +112,7 @@ export type BookingCountAggregateInputType = {
     terminalId?: true;
     timeSlotId?: true;
     status?: true;
+    readinessScore?: true;
     price?: true;
     qrToken?: true;
     blockchainHash?: true;
@@ -147,12 +157,13 @@ export type BookingGroupByOutputType = {
     terminalId: string;
     timeSlotId: string;
     status: $Enums.BookingStatus;
+    readinessScore: number | null;
     price: number | null;
     qrToken: string | null;
     blockchainHash: string | null;
     idempotencyKey: string | null;
     truckId: string | null;
-    containerId: string | null;
+    containerId: string;
     createdAt: Date;
     validatedAt: Date | null;
     _count: BookingCountAggregateOutputType | null;
@@ -173,20 +184,25 @@ export type BookingWhereInput = {
     terminalId?: Prisma.UuidFilter<"Booking"> | string;
     timeSlotId?: Prisma.UuidFilter<"Booking"> | string;
     status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus;
+    readinessScore?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     price?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     qrToken?: Prisma.StringNullableFilter<"Booking"> | string | null;
     blockchainHash?: Prisma.StringNullableFilter<"Booking"> | string | null;
     idempotencyKey?: Prisma.StringNullableFilter<"Booking"> | string | null;
     truckId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
-    containerId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
+    containerId?: Prisma.UuidFilter<"Booking"> | string;
     createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string;
     validatedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null;
     carrier?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     terminal?: Prisma.XOR<Prisma.TerminalScalarRelationFilter, Prisma.TerminalWhereInput>;
     timeSlot?: Prisma.XOR<Prisma.TimeSlotScalarRelationFilter, Prisma.TimeSlotWhereInput>;
     truck?: Prisma.XOR<Prisma.TruckNullableScalarRelationFilter, Prisma.TruckWhereInput> | null;
-    container?: Prisma.XOR<Prisma.ContainerNullableScalarRelationFilter, Prisma.ContainerWhereInput> | null;
+    container?: Prisma.XOR<Prisma.ContainerScalarRelationFilter, Prisma.ContainerWhereInput>;
     gateAccessLogs?: Prisma.GateAccessLogListRelationFilter;
+    readinessPredictions?: Prisma.ReadinessPredictionListRelationFilter;
+    readinessProofs?: Prisma.ReadinessProofListRelationFilter;
+    priorityAccess?: Prisma.XOR<Prisma.PriorityAccessNullableScalarRelationFilter, Prisma.PriorityAccessWhereInput> | null;
+    penalties?: Prisma.PenaltyListRelationFilter;
 };
 export type BookingOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -194,12 +210,13 @@ export type BookingOrderByWithRelationInput = {
     terminalId?: Prisma.SortOrder;
     timeSlotId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    readinessScore?: Prisma.SortOrderInput | Prisma.SortOrder;
     price?: Prisma.SortOrderInput | Prisma.SortOrder;
     qrToken?: Prisma.SortOrderInput | Prisma.SortOrder;
     blockchainHash?: Prisma.SortOrderInput | Prisma.SortOrder;
     idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder;
     truckId?: Prisma.SortOrderInput | Prisma.SortOrder;
-    containerId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    containerId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     validatedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     carrier?: Prisma.UserOrderByWithRelationInput;
@@ -208,6 +225,10 @@ export type BookingOrderByWithRelationInput = {
     truck?: Prisma.TruckOrderByWithRelationInput;
     container?: Prisma.ContainerOrderByWithRelationInput;
     gateAccessLogs?: Prisma.GateAccessLogOrderByRelationAggregateInput;
+    readinessPredictions?: Prisma.ReadinessPredictionOrderByRelationAggregateInput;
+    readinessProofs?: Prisma.ReadinessProofOrderByRelationAggregateInput;
+    priorityAccess?: Prisma.PriorityAccessOrderByWithRelationInput;
+    penalties?: Prisma.PenaltyOrderByRelationAggregateInput;
 };
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -219,19 +240,24 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
     terminalId?: Prisma.UuidFilter<"Booking"> | string;
     timeSlotId?: Prisma.UuidFilter<"Booking"> | string;
     status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus;
+    readinessScore?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     price?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     qrToken?: Prisma.StringNullableFilter<"Booking"> | string | null;
     blockchainHash?: Prisma.StringNullableFilter<"Booking"> | string | null;
     truckId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
-    containerId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
+    containerId?: Prisma.UuidFilter<"Booking"> | string;
     createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string;
     validatedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null;
     carrier?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     terminal?: Prisma.XOR<Prisma.TerminalScalarRelationFilter, Prisma.TerminalWhereInput>;
     timeSlot?: Prisma.XOR<Prisma.TimeSlotScalarRelationFilter, Prisma.TimeSlotWhereInput>;
     truck?: Prisma.XOR<Prisma.TruckNullableScalarRelationFilter, Prisma.TruckWhereInput> | null;
-    container?: Prisma.XOR<Prisma.ContainerNullableScalarRelationFilter, Prisma.ContainerWhereInput> | null;
+    container?: Prisma.XOR<Prisma.ContainerScalarRelationFilter, Prisma.ContainerWhereInput>;
     gateAccessLogs?: Prisma.GateAccessLogListRelationFilter;
+    readinessPredictions?: Prisma.ReadinessPredictionListRelationFilter;
+    readinessProofs?: Prisma.ReadinessProofListRelationFilter;
+    priorityAccess?: Prisma.XOR<Prisma.PriorityAccessNullableScalarRelationFilter, Prisma.PriorityAccessWhereInput> | null;
+    penalties?: Prisma.PenaltyListRelationFilter;
 }, "id" | "idempotencyKey">;
 export type BookingOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -239,12 +265,13 @@ export type BookingOrderByWithAggregationInput = {
     terminalId?: Prisma.SortOrder;
     timeSlotId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    readinessScore?: Prisma.SortOrderInput | Prisma.SortOrder;
     price?: Prisma.SortOrderInput | Prisma.SortOrder;
     qrToken?: Prisma.SortOrderInput | Prisma.SortOrder;
     blockchainHash?: Prisma.SortOrderInput | Prisma.SortOrder;
     idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder;
     truckId?: Prisma.SortOrderInput | Prisma.SortOrder;
-    containerId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    containerId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     validatedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     _count?: Prisma.BookingCountOrderByAggregateInput;
@@ -262,18 +289,20 @@ export type BookingScalarWhereWithAggregatesInput = {
     terminalId?: Prisma.UuidWithAggregatesFilter<"Booking"> | string;
     timeSlotId?: Prisma.UuidWithAggregatesFilter<"Booking"> | string;
     status?: Prisma.EnumBookingStatusWithAggregatesFilter<"Booking"> | $Enums.BookingStatus;
+    readinessScore?: Prisma.FloatNullableWithAggregatesFilter<"Booking"> | number | null;
     price?: Prisma.FloatNullableWithAggregatesFilter<"Booking"> | number | null;
     qrToken?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null;
     blockchainHash?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null;
     idempotencyKey?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null;
     truckId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null;
-    containerId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null;
+    containerId?: Prisma.UuidWithAggregatesFilter<"Booking"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string;
     validatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null;
 };
 export type BookingCreateInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -284,8 +313,12 @@ export type BookingCreateInput = {
     terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateInput = {
     id?: string;
@@ -293,19 +326,25 @@ export type BookingUncheckedCreateInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -316,8 +355,12 @@ export type BookingUpdateInput = {
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -325,15 +368,20 @@ export type BookingUncheckedUpdateInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateManyInput = {
     id?: string;
@@ -341,18 +389,20 @@ export type BookingCreateManyInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
 };
 export type BookingUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -366,12 +416,13 @@ export type BookingUncheckedUpdateManyInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
@@ -389,6 +440,7 @@ export type BookingCountOrderByAggregateInput = {
     terminalId?: Prisma.SortOrder;
     timeSlotId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    readinessScore?: Prisma.SortOrder;
     price?: Prisma.SortOrder;
     qrToken?: Prisma.SortOrder;
     blockchainHash?: Prisma.SortOrder;
@@ -399,6 +451,7 @@ export type BookingCountOrderByAggregateInput = {
     validatedAt?: Prisma.SortOrder;
 };
 export type BookingAvgOrderByAggregateInput = {
+    readinessScore?: Prisma.SortOrder;
     price?: Prisma.SortOrder;
 };
 export type BookingMaxOrderByAggregateInput = {
@@ -407,6 +460,7 @@ export type BookingMaxOrderByAggregateInput = {
     terminalId?: Prisma.SortOrder;
     timeSlotId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    readinessScore?: Prisma.SortOrder;
     price?: Prisma.SortOrder;
     qrToken?: Prisma.SortOrder;
     blockchainHash?: Prisma.SortOrder;
@@ -422,6 +476,7 @@ export type BookingMinOrderByAggregateInput = {
     terminalId?: Prisma.SortOrder;
     timeSlotId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    readinessScore?: Prisma.SortOrder;
     price?: Prisma.SortOrder;
     qrToken?: Prisma.SortOrder;
     blockchainHash?: Prisma.SortOrder;
@@ -432,6 +487,7 @@ export type BookingMinOrderByAggregateInput = {
     validatedAt?: Prisma.SortOrder;
 };
 export type BookingSumOrderByAggregateInput = {
+    readinessScore?: Prisma.SortOrder;
     price?: Prisma.SortOrder;
 };
 export type BookingScalarRelationFilter = {
@@ -565,6 +621,30 @@ export type NullableFloatFieldUpdateOperationsInput = {
 export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null;
 };
+export type BookingCreateNestedOneWithoutReadinessPredictionsInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedCreateWithoutReadinessPredictionsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutReadinessPredictionsInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+};
+export type BookingUpdateOneRequiredWithoutReadinessPredictionsNestedInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedCreateWithoutReadinessPredictionsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutReadinessPredictionsInput;
+    upsert?: Prisma.BookingUpsertWithoutReadinessPredictionsInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutReadinessPredictionsInput, Prisma.BookingUpdateWithoutReadinessPredictionsInput>, Prisma.BookingUncheckedUpdateWithoutReadinessPredictionsInput>;
+};
+export type BookingCreateNestedOneWithoutReadinessProofsInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutReadinessProofsInput, Prisma.BookingUncheckedCreateWithoutReadinessProofsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutReadinessProofsInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+};
+export type BookingUpdateOneRequiredWithoutReadinessProofsNestedInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutReadinessProofsInput, Prisma.BookingUncheckedCreateWithoutReadinessProofsInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutReadinessProofsInput;
+    upsert?: Prisma.BookingUpsertWithoutReadinessProofsInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutReadinessProofsInput, Prisma.BookingUpdateWithoutReadinessProofsInput>, Prisma.BookingUncheckedUpdateWithoutReadinessProofsInput>;
+};
 export type BookingCreateNestedOneWithoutGateAccessLogsInput = {
     create?: Prisma.XOR<Prisma.BookingCreateWithoutGateAccessLogsInput, Prisma.BookingUncheckedCreateWithoutGateAccessLogsInput>;
     connectOrCreate?: Prisma.BookingCreateOrConnectWithoutGateAccessLogsInput;
@@ -653,9 +733,34 @@ export type BookingUncheckedUpdateManyWithoutTruckNestedInput = {
     updateMany?: Prisma.BookingUpdateManyWithWhereWithoutTruckInput | Prisma.BookingUpdateManyWithWhereWithoutTruckInput[];
     deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[];
 };
+export type BookingCreateNestedOneWithoutPriorityAccessInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutPriorityAccessInput, Prisma.BookingUncheckedCreateWithoutPriorityAccessInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPriorityAccessInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+};
+export type BookingUpdateOneRequiredWithoutPriorityAccessNestedInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutPriorityAccessInput, Prisma.BookingUncheckedCreateWithoutPriorityAccessInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPriorityAccessInput;
+    upsert?: Prisma.BookingUpsertWithoutPriorityAccessInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutPriorityAccessInput, Prisma.BookingUpdateWithoutPriorityAccessInput>, Prisma.BookingUncheckedUpdateWithoutPriorityAccessInput>;
+};
+export type BookingCreateNestedOneWithoutPenaltiesInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutPenaltiesInput, Prisma.BookingUncheckedCreateWithoutPenaltiesInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPenaltiesInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+};
+export type BookingUpdateOneRequiredWithoutPenaltiesNestedInput = {
+    create?: Prisma.XOR<Prisma.BookingCreateWithoutPenaltiesInput, Prisma.BookingUncheckedCreateWithoutPenaltiesInput>;
+    connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPenaltiesInput;
+    upsert?: Prisma.BookingUpsertWithoutPenaltiesInput;
+    connect?: Prisma.BookingWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutPenaltiesInput, Prisma.BookingUpdateWithoutPenaltiesInput>, Prisma.BookingUncheckedUpdateWithoutPenaltiesInput>;
+};
 export type BookingCreateWithoutCarrierInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -665,23 +770,32 @@ export type BookingCreateWithoutCarrierInput = {
     terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutCarrierInput = {
     id?: string;
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutCarrierInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -713,18 +827,20 @@ export type BookingScalarWhereInput = {
     terminalId?: Prisma.UuidFilter<"Booking"> | string;
     timeSlotId?: Prisma.UuidFilter<"Booking"> | string;
     status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus;
+    readinessScore?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     price?: Prisma.FloatNullableFilter<"Booking"> | number | null;
     qrToken?: Prisma.StringNullableFilter<"Booking"> | string | null;
     blockchainHash?: Prisma.StringNullableFilter<"Booking"> | string | null;
     idempotencyKey?: Prisma.StringNullableFilter<"Booking"> | string | null;
     truckId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
-    containerId?: Prisma.UuidNullableFilter<"Booking"> | string | null;
+    containerId?: Prisma.UuidFilter<"Booking"> | string;
     createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string;
     validatedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null;
 };
 export type BookingCreateWithoutTerminalInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -734,23 +850,32 @@ export type BookingCreateWithoutTerminalInput = {
     carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTerminalInput = {
     id?: string;
     carrierId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTerminalInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -776,6 +901,7 @@ export type BookingUpdateManyWithWhereWithoutTerminalInput = {
 export type BookingCreateWithoutTimeSlotInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -785,23 +911,32 @@ export type BookingCreateWithoutTimeSlotInput = {
     carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
     terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTimeSlotInput = {
     id?: string;
     carrierId: string;
     terminalId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTimeSlotInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -824,9 +959,10 @@ export type BookingUpdateManyWithWhereWithoutTimeSlotInput = {
     where: Prisma.BookingScalarWhereInput;
     data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutTimeSlotInput>;
 };
-export type BookingCreateWithoutGateAccessLogsInput = {
+export type BookingCreateWithoutReadinessPredictionsInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -837,7 +973,197 @@ export type BookingCreateWithoutGateAccessLogsInput = {
     terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+};
+export type BookingUncheckedCreateWithoutReadinessPredictionsInput = {
+    id?: string;
+    carrierId: string;
+    terminalId: string;
+    timeSlotId: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    truckId?: string | null;
+    containerId: string;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+};
+export type BookingCreateOrConnectWithoutReadinessPredictionsInput = {
+    where: Prisma.BookingWhereUniqueInput;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedCreateWithoutReadinessPredictionsInput>;
+};
+export type BookingUpsertWithoutReadinessPredictionsInput = {
+    update: Prisma.XOR<Prisma.BookingUpdateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedUpdateWithoutReadinessPredictionsInput>;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedCreateWithoutReadinessPredictionsInput>;
+    where?: Prisma.BookingWhereInput;
+};
+export type BookingUpdateToOneWithWhereWithoutReadinessPredictionsInput = {
+    where?: Prisma.BookingWhereInput;
+    data: Prisma.XOR<Prisma.BookingUpdateWithoutReadinessPredictionsInput, Prisma.BookingUncheckedUpdateWithoutReadinessPredictionsInput>;
+};
+export type BookingUpdateWithoutReadinessPredictionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
+    timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
+    truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+};
+export type BookingUncheckedUpdateWithoutReadinessPredictionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+};
+export type BookingCreateWithoutReadinessProofsInput = {
+    id?: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
+    terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
+    timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
+    truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+};
+export type BookingUncheckedCreateWithoutReadinessProofsInput = {
+    id?: string;
+    carrierId: string;
+    terminalId: string;
+    timeSlotId: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    truckId?: string | null;
+    containerId: string;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+};
+export type BookingCreateOrConnectWithoutReadinessProofsInput = {
+    where: Prisma.BookingWhereUniqueInput;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutReadinessProofsInput, Prisma.BookingUncheckedCreateWithoutReadinessProofsInput>;
+};
+export type BookingUpsertWithoutReadinessProofsInput = {
+    update: Prisma.XOR<Prisma.BookingUpdateWithoutReadinessProofsInput, Prisma.BookingUncheckedUpdateWithoutReadinessProofsInput>;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutReadinessProofsInput, Prisma.BookingUncheckedCreateWithoutReadinessProofsInput>;
+    where?: Prisma.BookingWhereInput;
+};
+export type BookingUpdateToOneWithWhereWithoutReadinessProofsInput = {
+    where?: Prisma.BookingWhereInput;
+    data: Prisma.XOR<Prisma.BookingUpdateWithoutReadinessProofsInput, Prisma.BookingUncheckedUpdateWithoutReadinessProofsInput>;
+};
+export type BookingUpdateWithoutReadinessProofsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
+    timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
+    truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+};
+export type BookingUncheckedUpdateWithoutReadinessProofsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+};
+export type BookingCreateWithoutGateAccessLogsInput = {
+    id?: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
+    terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
+    timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
+    truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutGateAccessLogsInput = {
     id?: string;
@@ -845,14 +1171,19 @@ export type BookingUncheckedCreateWithoutGateAccessLogsInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutGateAccessLogsInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -870,6 +1201,7 @@ export type BookingUpdateToOneWithWhereWithoutGateAccessLogsInput = {
 export type BookingUpdateWithoutGateAccessLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -880,7 +1212,11 @@ export type BookingUpdateWithoutGateAccessLogsInput = {
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutGateAccessLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -888,18 +1224,24 @@ export type BookingUncheckedUpdateWithoutGateAccessLogsInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingCreateWithoutContainerInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -911,6 +1253,10 @@ export type BookingCreateWithoutContainerInput = {
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
     truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutContainerInput = {
     id?: string;
@@ -918,6 +1264,7 @@ export type BookingUncheckedCreateWithoutContainerInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -926,6 +1273,10 @@ export type BookingUncheckedCreateWithoutContainerInput = {
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutContainerInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -951,6 +1302,7 @@ export type BookingUpdateManyWithWhereWithoutContainerInput = {
 export type BookingCreateWithoutTruckInput = {
     id?: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -960,8 +1312,12 @@ export type BookingCreateWithoutTruckInput = {
     carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
     terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
     timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
-    container?: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
     gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
 };
 export type BookingUncheckedCreateWithoutTruckInput = {
     id?: string;
@@ -969,14 +1325,19 @@ export type BookingUncheckedCreateWithoutTruckInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
 };
 export type BookingCreateOrConnectWithoutTruckInput = {
     where: Prisma.BookingWhereUniqueInput;
@@ -999,23 +1360,211 @@ export type BookingUpdateManyWithWhereWithoutTruckInput = {
     where: Prisma.BookingScalarWhereInput;
     data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutTruckInput>;
 };
-export type BookingCreateManyCarrierInput = {
+export type BookingCreateWithoutPriorityAccessInput = {
     id?: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
+    terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
+    timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
+    truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    penalties?: Prisma.PenaltyCreateNestedManyWithoutBookingInput;
+};
+export type BookingUncheckedCreateWithoutPriorityAccessInput = {
+    id?: string;
+    carrierId: string;
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    penalties?: Prisma.PenaltyUncheckedCreateNestedManyWithoutBookingInput;
+};
+export type BookingCreateOrConnectWithoutPriorityAccessInput = {
+    where: Prisma.BookingWhereUniqueInput;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutPriorityAccessInput, Prisma.BookingUncheckedCreateWithoutPriorityAccessInput>;
+};
+export type BookingUpsertWithoutPriorityAccessInput = {
+    update: Prisma.XOR<Prisma.BookingUpdateWithoutPriorityAccessInput, Prisma.BookingUncheckedUpdateWithoutPriorityAccessInput>;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutPriorityAccessInput, Prisma.BookingUncheckedCreateWithoutPriorityAccessInput>;
+    where?: Prisma.BookingWhereInput;
+};
+export type BookingUpdateToOneWithWhereWithoutPriorityAccessInput = {
+    where?: Prisma.BookingWhereInput;
+    data: Prisma.XOR<Prisma.BookingUpdateWithoutPriorityAccessInput, Prisma.BookingUncheckedUpdateWithoutPriorityAccessInput>;
+};
+export type BookingUpdateWithoutPriorityAccessInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
+    timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
+    truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
+};
+export type BookingUncheckedUpdateWithoutPriorityAccessInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
+};
+export type BookingCreateWithoutPenaltiesInput = {
+    id?: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    carrier: Prisma.UserCreateNestedOneWithoutBookingsInput;
+    terminal: Prisma.TerminalCreateNestedOneWithoutBookingsInput;
+    timeSlot: Prisma.TimeSlotCreateNestedOneWithoutBookingsInput;
+    truck?: Prisma.TruckCreateNestedOneWithoutBookingsInput;
+    container: Prisma.ContainerCreateNestedOneWithoutBookingsInput;
+    gateAccessLogs?: Prisma.GateAccessLogCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessCreateNestedOneWithoutBookingInput;
+};
+export type BookingUncheckedCreateWithoutPenaltiesInput = {
+    id?: string;
+    carrierId: string;
+    terminalId: string;
+    timeSlotId: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    truckId?: string | null;
+    containerId: string;
+    createdAt?: Date | string;
+    validatedAt?: Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedCreateNestedManyWithoutBookingInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedCreateNestedManyWithoutBookingInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedCreateNestedManyWithoutBookingInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedCreateNestedOneWithoutBookingInput;
+};
+export type BookingCreateOrConnectWithoutPenaltiesInput = {
+    where: Prisma.BookingWhereUniqueInput;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutPenaltiesInput, Prisma.BookingUncheckedCreateWithoutPenaltiesInput>;
+};
+export type BookingUpsertWithoutPenaltiesInput = {
+    update: Prisma.XOR<Prisma.BookingUpdateWithoutPenaltiesInput, Prisma.BookingUncheckedUpdateWithoutPenaltiesInput>;
+    create: Prisma.XOR<Prisma.BookingCreateWithoutPenaltiesInput, Prisma.BookingUncheckedCreateWithoutPenaltiesInput>;
+    where?: Prisma.BookingWhereInput;
+};
+export type BookingUpdateToOneWithWhereWithoutPenaltiesInput = {
+    where?: Prisma.BookingWhereInput;
+    data: Prisma.XOR<Prisma.BookingUpdateWithoutPenaltiesInput, Prisma.BookingUncheckedUpdateWithoutPenaltiesInput>;
+};
+export type BookingUpdateWithoutPenaltiesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
+    timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
+    truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
+    gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+};
+export type BookingUncheckedUpdateWithoutPenaltiesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+    qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+};
+export type BookingCreateManyCarrierInput = {
+    id?: string;
+    terminalId: string;
+    timeSlotId: string;
+    status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
+    price?: number | null;
+    qrToken?: string | null;
+    blockchainHash?: string | null;
+    idempotencyKey?: string | null;
+    truckId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
 };
 export type BookingUpdateWithoutCarrierInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1025,35 +1574,45 @@ export type BookingUpdateWithoutCarrierInput = {
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutCarrierInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutCarrierInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
@@ -1062,18 +1621,20 @@ export type BookingCreateManyTerminalInput = {
     carrierId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
 };
 export type BookingUpdateWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1083,35 +1644,45 @@ export type BookingUpdateWithoutTerminalInput = {
     carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
@@ -1120,18 +1691,20 @@ export type BookingCreateManyTimeSlotInput = {
     carrierId: string;
     terminalId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
     truckId?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
 };
 export type BookingUpdateWithoutTimeSlotInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1141,35 +1714,45 @@ export type BookingUpdateWithoutTimeSlotInput = {
     carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTimeSlotInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTimeSlotInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     carrierId?: Prisma.StringFieldUpdateOperationsInput | string;
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     truckId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
@@ -1179,6 +1762,7 @@ export type BookingCreateManyContainerInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
@@ -1190,6 +1774,7 @@ export type BookingCreateManyContainerInput = {
 export type BookingUpdateWithoutContainerInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1201,6 +1786,10 @@ export type BookingUpdateWithoutContainerInput = {
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
     truck?: Prisma.TruckUpdateOneWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutContainerInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1208,6 +1797,7 @@ export type BookingUncheckedUpdateWithoutContainerInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1216,6 +1806,10 @@ export type BookingUncheckedUpdateWithoutContainerInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutContainerInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1223,6 +1817,7 @@ export type BookingUncheckedUpdateManyWithoutContainerInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1237,17 +1832,19 @@ export type BookingCreateManyTruckInput = {
     terminalId: string;
     timeSlotId: string;
     status?: $Enums.BookingStatus;
+    readinessScore?: number | null;
     price?: number | null;
     qrToken?: string | null;
     blockchainHash?: string | null;
     idempotencyKey?: string | null;
-    containerId?: string | null;
+    containerId: string;
     createdAt?: Date | string;
     validatedAt?: Date | string | null;
 };
 export type BookingUpdateWithoutTruckInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1257,8 +1854,12 @@ export type BookingUpdateWithoutTruckInput = {
     carrier?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput;
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutBookingsNestedInput;
     timeSlot?: Prisma.TimeSlotUpdateOneRequiredWithoutBookingsNestedInput;
-    container?: Prisma.ContainerUpdateOneWithoutBookingsNestedInput;
+    container?: Prisma.ContainerUpdateOneRequiredWithoutBookingsNestedInput;
     gateAccessLogs?: Prisma.GateAccessLogUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateWithoutTruckInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1266,14 +1867,19 @@ export type BookingUncheckedUpdateWithoutTruckInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     gateAccessLogs?: Prisma.GateAccessLogUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessPredictions?: Prisma.ReadinessPredictionUncheckedUpdateManyWithoutBookingNestedInput;
+    readinessProofs?: Prisma.ReadinessProofUncheckedUpdateManyWithoutBookingNestedInput;
+    priorityAccess?: Prisma.PriorityAccessUncheckedUpdateOneWithoutBookingNestedInput;
+    penalties?: Prisma.PenaltyUncheckedUpdateManyWithoutBookingNestedInput;
 };
 export type BookingUncheckedUpdateManyWithoutTruckInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1281,19 +1887,26 @@ export type BookingUncheckedUpdateManyWithoutTruckInput = {
     terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
     timeSlotId?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus;
+    readinessScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
     qrToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     blockchainHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    containerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    containerId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 export type BookingCountOutputType = {
     gateAccessLogs: number;
+    readinessPredictions: number;
+    readinessProofs: number;
+    penalties: number;
 };
 export type BookingCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     gateAccessLogs?: boolean | BookingCountOutputTypeCountGateAccessLogsArgs;
+    readinessPredictions?: boolean | BookingCountOutputTypeCountReadinessPredictionsArgs;
+    readinessProofs?: boolean | BookingCountOutputTypeCountReadinessProofsArgs;
+    penalties?: boolean | BookingCountOutputTypeCountPenaltiesArgs;
 };
 export type BookingCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.BookingCountOutputTypeSelect<ExtArgs> | null;
@@ -1301,12 +1914,22 @@ export type BookingCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
 export type BookingCountOutputTypeCountGateAccessLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.GateAccessLogWhereInput;
 };
+export type BookingCountOutputTypeCountReadinessPredictionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ReadinessPredictionWhereInput;
+};
+export type BookingCountOutputTypeCountReadinessProofsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ReadinessProofWhereInput;
+};
+export type BookingCountOutputTypeCountPenaltiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.PenaltyWhereInput;
+};
 export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     carrierId?: boolean;
     terminalId?: boolean;
     timeSlotId?: boolean;
     status?: boolean;
+    readinessScore?: boolean;
     price?: boolean;
     qrToken?: boolean;
     blockchainHash?: boolean;
@@ -1319,8 +1942,12 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
     gateAccessLogs?: boolean | Prisma.Booking$gateAccessLogsArgs<ExtArgs>;
+    readinessPredictions?: boolean | Prisma.Booking$readinessPredictionsArgs<ExtArgs>;
+    readinessProofs?: boolean | Prisma.Booking$readinessProofsArgs<ExtArgs>;
+    priorityAccess?: boolean | Prisma.Booking$priorityAccessArgs<ExtArgs>;
+    penalties?: boolean | Prisma.Booking$penaltiesArgs<ExtArgs>;
     _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["booking"]>;
 export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1329,6 +1956,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
     terminalId?: boolean;
     timeSlotId?: boolean;
     status?: boolean;
+    readinessScore?: boolean;
     price?: boolean;
     qrToken?: boolean;
     blockchainHash?: boolean;
@@ -1341,7 +1969,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["booking"]>;
 export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -1349,6 +1977,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
     terminalId?: boolean;
     timeSlotId?: boolean;
     status?: boolean;
+    readinessScore?: boolean;
     price?: boolean;
     qrToken?: boolean;
     blockchainHash?: boolean;
@@ -1361,7 +1990,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["booking"]>;
 export type BookingSelectScalar = {
     id?: boolean;
@@ -1369,6 +1998,7 @@ export type BookingSelectScalar = {
     terminalId?: boolean;
     timeSlotId?: boolean;
     status?: boolean;
+    readinessScore?: boolean;
     price?: boolean;
     qrToken?: boolean;
     blockchainHash?: boolean;
@@ -1378,14 +2008,18 @@ export type BookingSelectScalar = {
     createdAt?: boolean;
     validatedAt?: boolean;
 };
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "carrierId" | "terminalId" | "timeSlotId" | "status" | "price" | "qrToken" | "blockchainHash" | "idempotencyKey" | "truckId" | "containerId" | "createdAt" | "validatedAt", ExtArgs["result"]["booking"]>;
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "carrierId" | "terminalId" | "timeSlotId" | "status" | "readinessScore" | "price" | "qrToken" | "blockchainHash" | "idempotencyKey" | "truckId" | "containerId" | "createdAt" | "validatedAt", ExtArgs["result"]["booking"]>;
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     carrier?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
     gateAccessLogs?: boolean | Prisma.Booking$gateAccessLogsArgs<ExtArgs>;
+    readinessPredictions?: boolean | Prisma.Booking$readinessPredictionsArgs<ExtArgs>;
+    readinessProofs?: boolean | Prisma.Booking$readinessProofsArgs<ExtArgs>;
+    priorityAccess?: boolean | Prisma.Booking$priorityAccessArgs<ExtArgs>;
+    penalties?: boolean | Prisma.Booking$penaltiesArgs<ExtArgs>;
     _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1393,14 +2027,14 @@ export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
 };
 export type BookingIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     carrier?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     timeSlot?: boolean | Prisma.TimeSlotDefaultArgs<ExtArgs>;
     truck?: boolean | Prisma.Booking$truckArgs<ExtArgs>;
-    container?: boolean | Prisma.Booking$containerArgs<ExtArgs>;
+    container?: boolean | Prisma.ContainerDefaultArgs<ExtArgs>;
 };
 export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "Booking";
@@ -1409,8 +2043,12 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         terminal: Prisma.$TerminalPayload<ExtArgs>;
         timeSlot: Prisma.$TimeSlotPayload<ExtArgs>;
         truck: Prisma.$TruckPayload<ExtArgs> | null;
-        container: Prisma.$ContainerPayload<ExtArgs> | null;
+        container: Prisma.$ContainerPayload<ExtArgs>;
         gateAccessLogs: Prisma.$GateAccessLogPayload<ExtArgs>[];
+        readinessPredictions: Prisma.$ReadinessPredictionPayload<ExtArgs>[];
+        readinessProofs: Prisma.$ReadinessProofPayload<ExtArgs>[];
+        priorityAccess: Prisma.$PriorityAccessPayload<ExtArgs> | null;
+        penalties: Prisma.$PenaltyPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1418,12 +2056,13 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         terminalId: string;
         timeSlotId: string;
         status: $Enums.BookingStatus;
+        readinessScore: number | null;
         price: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
         idempotencyKey: string | null;
         truckId: string | null;
-        containerId: string | null;
+        containerId: string;
         createdAt: Date;
         validatedAt: Date | null;
     }, ExtArgs["result"]["booking"]>;
@@ -1482,8 +2121,12 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
     terminal<T extends Prisma.TerminalDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TerminalDefaultArgs<ExtArgs>>): Prisma.Prisma__TerminalClient<runtime.Types.Result.GetResult<Prisma.$TerminalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     timeSlot<T extends Prisma.TimeSlotDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TimeSlotDefaultArgs<ExtArgs>>): Prisma.Prisma__TimeSlotClient<runtime.Types.Result.GetResult<Prisma.$TimeSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     truck<T extends Prisma.Booking$truckArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$truckArgs<ExtArgs>>): Prisma.Prisma__TruckClient<runtime.Types.Result.GetResult<Prisma.$TruckPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
-    container<T extends Prisma.Booking$containerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$containerArgs<ExtArgs>>): Prisma.Prisma__ContainerClient<runtime.Types.Result.GetResult<Prisma.$ContainerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    container<T extends Prisma.ContainerDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContainerDefaultArgs<ExtArgs>>): Prisma.Prisma__ContainerClient<runtime.Types.Result.GetResult<Prisma.$ContainerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     gateAccessLogs<T extends Prisma.Booking$gateAccessLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$gateAccessLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GateAccessLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    readinessPredictions<T extends Prisma.Booking$readinessPredictionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$readinessPredictionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReadinessPredictionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    readinessProofs<T extends Prisma.Booking$readinessProofsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$readinessProofsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReadinessProofPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    priorityAccess<T extends Prisma.Booking$priorityAccessArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$priorityAccessArgs<ExtArgs>>): Prisma.Prisma__PriorityAccessClient<runtime.Types.Result.GetResult<Prisma.$PriorityAccessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    penalties<T extends Prisma.Booking$penaltiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$penaltiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PenaltyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -1494,6 +2137,7 @@ export interface BookingFieldRefs {
     readonly terminalId: Prisma.FieldRef<"Booking", 'String'>;
     readonly timeSlotId: Prisma.FieldRef<"Booking", 'String'>;
     readonly status: Prisma.FieldRef<"Booking", 'BookingStatus'>;
+    readonly readinessScore: Prisma.FieldRef<"Booking", 'Float'>;
     readonly price: Prisma.FieldRef<"Booking", 'Float'>;
     readonly qrToken: Prisma.FieldRef<"Booking", 'String'>;
     readonly blockchainHash: Prisma.FieldRef<"Booking", 'String'>;
@@ -1609,12 +2253,6 @@ export type Booking$truckArgs<ExtArgs extends runtime.Types.Extensions.InternalA
     include?: Prisma.TruckInclude<ExtArgs> | null;
     where?: Prisma.TruckWhereInput;
 };
-export type Booking$containerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-    select?: Prisma.ContainerSelect<ExtArgs> | null;
-    omit?: Prisma.ContainerOmit<ExtArgs> | null;
-    include?: Prisma.ContainerInclude<ExtArgs> | null;
-    where?: Prisma.ContainerWhereInput;
-};
 export type Booking$gateAccessLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.GateAccessLogSelect<ExtArgs> | null;
     omit?: Prisma.GateAccessLogOmit<ExtArgs> | null;
@@ -1625,6 +2263,45 @@ export type Booking$gateAccessLogsArgs<ExtArgs extends runtime.Types.Extensions.
     take?: number;
     skip?: number;
     distinct?: Prisma.GateAccessLogScalarFieldEnum | Prisma.GateAccessLogScalarFieldEnum[];
+};
+export type Booking$readinessPredictionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ReadinessPredictionSelect<ExtArgs> | null;
+    omit?: Prisma.ReadinessPredictionOmit<ExtArgs> | null;
+    include?: Prisma.ReadinessPredictionInclude<ExtArgs> | null;
+    where?: Prisma.ReadinessPredictionWhereInput;
+    orderBy?: Prisma.ReadinessPredictionOrderByWithRelationInput | Prisma.ReadinessPredictionOrderByWithRelationInput[];
+    cursor?: Prisma.ReadinessPredictionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ReadinessPredictionScalarFieldEnum | Prisma.ReadinessPredictionScalarFieldEnum[];
+};
+export type Booking$readinessProofsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ReadinessProofSelect<ExtArgs> | null;
+    omit?: Prisma.ReadinessProofOmit<ExtArgs> | null;
+    include?: Prisma.ReadinessProofInclude<ExtArgs> | null;
+    where?: Prisma.ReadinessProofWhereInput;
+    orderBy?: Prisma.ReadinessProofOrderByWithRelationInput | Prisma.ReadinessProofOrderByWithRelationInput[];
+    cursor?: Prisma.ReadinessProofWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ReadinessProofScalarFieldEnum | Prisma.ReadinessProofScalarFieldEnum[];
+};
+export type Booking$priorityAccessArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.PriorityAccessSelect<ExtArgs> | null;
+    omit?: Prisma.PriorityAccessOmit<ExtArgs> | null;
+    include?: Prisma.PriorityAccessInclude<ExtArgs> | null;
+    where?: Prisma.PriorityAccessWhereInput;
+};
+export type Booking$penaltiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.PenaltySelect<ExtArgs> | null;
+    omit?: Prisma.PenaltyOmit<ExtArgs> | null;
+    include?: Prisma.PenaltyInclude<ExtArgs> | null;
+    where?: Prisma.PenaltyWhereInput;
+    orderBy?: Prisma.PenaltyOrderByWithRelationInput | Prisma.PenaltyOrderByWithRelationInput[];
+    cursor?: Prisma.PenaltyWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.PenaltyScalarFieldEnum | Prisma.PenaltyScalarFieldEnum[];
 };
 export type BookingDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.BookingSelect<ExtArgs> | null;

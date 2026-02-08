@@ -61,7 +61,7 @@ let BookingService = class BookingService {
                 terminalId: dto.terminalId,
                 timeSlotId: dto.timeSlotId,
                 truckId: dto.truckId || null,
-                containerId: dto.containerId || null,
+                containerId: dto.containerId,
                 price: dto.price || null,
                 idempotencyKey: dto.idempotencyKey || null,
                 status: 'PENDING',
@@ -127,7 +127,6 @@ let BookingService = class BookingService {
             carrierId: booking.carrierId,
             terminalId: booking.terminalId,
             timeSlotId: booking.timeSlotId,
-            timestamp: new Date().toISOString(),
         });
         const updated = await this.prisma.booking.update({
             where: { id },
@@ -137,6 +136,12 @@ let BookingService = class BookingService {
                 blockchainHash,
                 validatedAt: new Date(),
             },
+        });
+        await this.blockchainService.createProof('BOOKING', booking.id, {
+            bookingId: booking.id,
+            carrierId: booking.carrierId,
+            terminalId: booking.terminalId,
+            timeSlotId: booking.timeSlotId,
         });
         const qrDataUrl = await this.qrService.generateQrDataUrl(qrToken);
         this.eventsGateway.emitBookingStatus(id, 'CONFIRMED');
@@ -155,6 +160,42 @@ let BookingService = class BookingService {
         this.eventsGateway.emitBookingStatus(id, 'REJECTED');
         this.eventsGateway.emitQueueUpdate(booking.terminalId);
         return { ...updated, rejectionReason: reason };
+    }
+    async rescheduleOptions(id) {
+        const booking = await this.findOne(id);
+        if (!['PENDING', 'CONFIRMED', 'AT_RISK', 'READY_TO_GO'].includes(booking.status)) {
+            throw new BadRequestException(`Cannot reschedule booking with status: ${booking.status}`);
+        }
+        const now = new Date();
+        const slots = await this.prisma.timeSlot.findMany({
+            where: {
+                terminalId: booking.terminalId,
+                startTime: { gte: now },
+                id: { not: booking.timeSlotId },
+            },
+            include: {
+                _count: {
+                    select: {
+                        bookings: {
+                            where: {
+                                status: { in: ['PENDING', 'CONFIRMED', 'READY_TO_GO'] },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { startTime: 'asc' },
+            take: 10,
+        });
+        return slots
+            .filter((s) => s._count.bookings < s.capacity)
+            .map((s) => ({
+            slotId: s.id,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            availableCapacity: s.capacity - s._count.bookings,
+            totalCapacity: s.capacity,
+        }));
     }
     async getOperatorQueue(terminalId) {
         const where = { status: 'PENDING' };

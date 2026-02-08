@@ -18,6 +18,9 @@ export declare const ModelName: {
     readonly Gate: "Gate";
     readonly TimeSlot: "TimeSlot";
     readonly Booking: "Booking";
+    readonly ReadinessPrediction: "ReadinessPrediction";
+    readonly ReadinessProof: "ReadinessProof";
+    readonly BlockchainProof: "BlockchainProof";
     readonly GateAccessLog: "GateAccessLog";
     readonly Container: "Container";
     readonly TrackingEvent: "TrackingEvent";
@@ -30,6 +33,9 @@ export declare const ModelName: {
     readonly Zone: "Zone";
     readonly AuditLog: "AuditLog";
     readonly MetricDaily: "MetricDaily";
+    readonly SlotPricing: "SlotPricing";
+    readonly PriorityAccess: "PriorityAccess";
+    readonly Penalty: "Penalty";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -92,6 +98,7 @@ export declare const BookingScalarFieldEnum: {
     readonly terminalId: "terminalId";
     readonly timeSlotId: "timeSlotId";
     readonly status: "status";
+    readonly readinessScore: "readinessScore";
     readonly price: "price";
     readonly qrToken: "qrToken";
     readonly blockchainHash: "blockchainHash";
@@ -102,6 +109,32 @@ export declare const BookingScalarFieldEnum: {
     readonly validatedAt: "validatedAt";
 };
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum];
+export declare const ReadinessPredictionScalarFieldEnum: {
+    readonly id: "id";
+    readonly bookingId: "bookingId";
+    readonly probability: "probability";
+    readonly riskLevel: "riskLevel";
+    readonly computedAt: "computedAt";
+};
+export type ReadinessPredictionScalarFieldEnum = (typeof ReadinessPredictionScalarFieldEnum)[keyof typeof ReadinessPredictionScalarFieldEnum];
+export declare const ReadinessProofScalarFieldEnum: {
+    readonly id: "id";
+    readonly bookingId: "bookingId";
+    readonly containerId: "containerId";
+    readonly confirmedBy: "confirmedBy";
+    readonly confirmedAt: "confirmedAt";
+    readonly blockchainHash: "blockchainHash";
+};
+export type ReadinessProofScalarFieldEnum = (typeof ReadinessProofScalarFieldEnum)[keyof typeof ReadinessProofScalarFieldEnum];
+export declare const BlockchainProofScalarFieldEnum: {
+    readonly id: "id";
+    readonly entityType: "entityType";
+    readonly entityId: "entityId";
+    readonly hash: "hash";
+    readonly payloadHash: "payloadHash";
+    readonly createdAt: "createdAt";
+};
+export type BlockchainProofScalarFieldEnum = (typeof BlockchainProofScalarFieldEnum)[keyof typeof BlockchainProofScalarFieldEnum];
 export declare const GateAccessLogScalarFieldEnum: {
     readonly id: "id";
     readonly bookingId: "bookingId";
@@ -115,6 +148,9 @@ export declare const ContainerScalarFieldEnum: {
     readonly id: "id";
     readonly containerNumber: "containerNumber";
     readonly carrierId: "carrierId";
+    readonly terminalId: "terminalId";
+    readonly status: "status";
+    readonly lastUpdatedAt: "lastUpdatedAt";
     readonly createdAt: "createdAt";
 };
 export type ContainerScalarFieldEnum = (typeof ContainerScalarFieldEnum)[keyof typeof ContainerScalarFieldEnum];
@@ -203,6 +239,34 @@ export declare const MetricDailyScalarFieldEnum: {
     readonly revenue: "revenue";
 };
 export type MetricDailyScalarFieldEnum = (typeof MetricDailyScalarFieldEnum)[keyof typeof MetricDailyScalarFieldEnum];
+export declare const SlotPricingScalarFieldEnum: {
+    readonly id: "id";
+    readonly slotId: "slotId";
+    readonly basePrice: "basePrice";
+    readonly multiplier: "multiplier";
+    readonly finalPrice: "finalPrice";
+    readonly reason: "reason";
+    readonly isEcoSlot: "isEcoSlot";
+    readonly computedAt: "computedAt";
+};
+export type SlotPricingScalarFieldEnum = (typeof SlotPricingScalarFieldEnum)[keyof typeof SlotPricingScalarFieldEnum];
+export declare const PriorityAccessScalarFieldEnum: {
+    readonly id: "id";
+    readonly bookingId: "bookingId";
+    readonly level: "level";
+    readonly fee: "fee";
+    readonly createdAt: "createdAt";
+};
+export type PriorityAccessScalarFieldEnum = (typeof PriorityAccessScalarFieldEnum)[keyof typeof PriorityAccessScalarFieldEnum];
+export declare const PenaltyScalarFieldEnum: {
+    readonly id: "id";
+    readonly bookingId: "bookingId";
+    readonly type: "type";
+    readonly amount: "amount";
+    readonly reason: "reason";
+    readonly appliedAt: "appliedAt";
+};
+export type PenaltyScalarFieldEnum = (typeof PenaltyScalarFieldEnum)[keyof typeof PenaltyScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

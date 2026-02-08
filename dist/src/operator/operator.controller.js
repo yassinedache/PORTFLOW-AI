@@ -10,10 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Req, } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, } from '@nestjs/swagger';
 import { OperatorService } from './operator.service.js';
 import { CapacityOverrideDto } from './dto/capacity-override.dto.js';
+import { UpdateContainerStatusDto } from './dto/update-container-status.dto.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Role } from '../../generated/prisma/client.js';
@@ -30,6 +31,13 @@ let OperatorController = class OperatorController {
     }
     getAlerts(terminalId) {
         return this.operatorService.getAlerts(terminalId);
+    }
+    updateContainerStatus(id, dto) {
+        return this.operatorService.updateContainerStatus(id, dto.status);
+    }
+    confirmReadiness(id, req) {
+        const userId = req?.user?.id;
+        return this.operatorService.confirmReadiness(id, userId);
     }
 };
 __decorate([
@@ -61,6 +69,28 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], OperatorController.prototype, "getAlerts", null);
+__decorate([
+    Post('containers/:id/status'),
+    Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN),
+    ApiOperation({ summary: 'Update container status (Operator/Admin)' }),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, UpdateContainerStatusDto]),
+    __metadata("design:returntype", void 0)
+], OperatorController.prototype, "updateContainerStatus", null);
+__decorate([
+    Post('bookings/:id/confirm-readiness'),
+    Roles(Role.TERMINAL_OPERATOR, Role.PORT_ADMIN),
+    ApiOperation({
+        summary: 'Confirm booking readiness — sets status to READY_TO_GO',
+    }),
+    __param(0, Param('id')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], OperatorController.prototype, "confirmReadiness", null);
 OperatorController = __decorate([
     ApiTags('Operator Control Room'),
     ApiBearerAuth(),

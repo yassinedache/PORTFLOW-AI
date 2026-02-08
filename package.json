@@ -26,6 +26,8 @@
     "test:e2e:full:win": "chcp 65001>nul && node --no-warnings --experimental-vm-modules ./node_modules/jest/bin/jest.js -c test/jest-e2e.json --testPathPatterns portflow-full --runInBand --verbose",
     "test:e2e:blockchain": "node --no-warnings --experimental-vm-modules ./node_modules/jest/bin/jest.js -c test/jest-e2e.json --testPathPatterns blockchain --runInBand --verbose",
     "test:e2e:blockchain:win": "chcp 65001>nul && node --no-warnings --experimental-vm-modules ./node_modules/jest/bin/jest.js -c test/jest-e2e.json --testPathPatterns blockchain --runInBand --verbose",
+    "test:e2e:monetization": "node --no-warnings --experimental-vm-modules ./node_modules/jest/bin/jest.js -c test/jest-e2e.json --testPathPatterns monetization --runInBand --verbose",
+    "test:e2e:monetization:win": "chcp 65001>nul && node --no-warnings --experimental-vm-modules ./node_modules/jest/bin/jest.js -c test/jest-e2e.json --testPathPatterns monetization --runInBand --verbose",
     "test:e2e:setup": "npx prisma db push && npx tsx prisma/seed.ts",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",

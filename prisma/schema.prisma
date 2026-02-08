@@ -146,7 +146,8 @@ model TimeSlot {
   endTime    DateTime @map("end_time")
   capacity   Int
 
-  bookings Booking[]
+  bookings    Booking[]
+  pricings    SlotPricing[]
 
   @@map("time_slots")
 }
@@ -177,6 +178,8 @@ model Booking {
   gateAccessLogs       GateAccessLog[]
   readinessPredictions ReadinessPrediction[]
   readinessProofs      ReadinessProof[]
+  priorityAccess       PriorityAccess?
+  penalties            Penalty[]
 
   @@map("bookings")
 }
@@ -386,4 +389,47 @@ model MetricDaily {
 
   @@unique([date, terminalId])
   @@map("metric_daily")
+}
+
+// ─── Monetization: Slot Pricing ──────────────────────────────────────────────
+
+model SlotPricing {
+  id         String   @id @default(uuid()) @db.Uuid
+  slotId     String   @map("slot_id") @db.Uuid
+  slot       TimeSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  basePrice  Float    @map("base_price")
+  multiplier Float    @default(1.0)
+  finalPrice Float    @map("final_price")
+  reason     String
+  isEcoSlot  Boolean  @default(false) @map("is_eco_slot")
+  computedAt DateTime @default(now()) @map("computed_at")
+
+  @@map("slot_pricings")
+}
+
+// ─── Monetization: Priority Access ───────────────────────────────────────────
+
+model PriorityAccess {
+  id        String   @id @default(uuid()) @db.Uuid
+  bookingId String   @unique @map("booking_id") @db.Uuid
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  level     String   @default("STANDARD") // STANDARD | PRIORITY
+  fee       Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("priority_access")
+}
+
+// ─── Monetization: Penalties ─────────────────────────────────────────────────
+
+model Penalty {
+  id        String   @id @default(uuid()) @db.Uuid
+  bookingId String   @map("booking_id") @db.Uuid
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  type      String   // NO_SHOW | LATE
+  amount    Float
+  reason    String?
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  @@map("penalties")
 }

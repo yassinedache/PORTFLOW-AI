@@ -11,15 +11,18 @@ var GateAccessService_1;
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { QrService } from '../qr/qr.service.js';
+import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
 let GateAccessService = GateAccessService_1 = class GateAccessService {
     prisma;
     qrService;
+    blockchainService;
     eventsGateway;
     logger = new Logger(GateAccessService_1.name);
-    constructor(prisma, qrService, eventsGateway) {
+    constructor(prisma, qrService, blockchainService, eventsGateway) {
         this.prisma = prisma;
         this.qrService = qrService;
+        this.blockchainService = blockchainService;
         this.eventsGateway = eventsGateway;
     }
     async scan(dto) {
@@ -43,8 +46,8 @@ let GateAccessService = GateAccessService_1 = class GateAccessService {
         if (!booking) {
             return this.createLog(null, dto.gateId, 'DENIED', 'Booking not found');
         }
-        if (booking.status !== 'CONFIRMED') {
-            return this.createLog(booking.id, dto.gateId, 'DENIED', `Booking status is ${booking.status}, expected CONFIRMED`);
+        if (booking.status !== 'READY_TO_GO') {
+            return this.createLog(booking.id, dto.gateId, 'DENIED', `Booking status is ${booking.status}, expected READY_TO_GO`);
         }
         if (gate.terminalId !== booking.terminalId) {
             return this.createLog(booking.id, dto.gateId, 'DENIED', 'Gate does not belong to booking terminal');
@@ -59,6 +62,17 @@ let GateAccessService = GateAccessService_1 = class GateAccessService {
         if (now > new Date(slotEnd.getTime() + bufferMs)) {
             return this.createLog(booking.id, dto.gateId, 'DENIED', 'Too late - time slot has expired');
         }
+        if (booking.blockchainHash) {
+            const isValid = await this.blockchainService.verifyHash({
+                bookingId: booking.id,
+                carrierId: booking.carrierId,
+                terminalId: booking.terminalId,
+                timeSlotId: booking.timeSlotId,
+            }, booking.blockchainHash);
+            if (!isValid) {
+                return this.createLog(booking.id, dto.gateId, 'DENIED', 'Blockchain proof verification failed');
+            }
+        }
         await this.prisma.booking.update({
             where: { id: booking.id },
             data: { status: 'CONSUMED' },
@@ -66,6 +80,12 @@ let GateAccessService = GateAccessService_1 = class GateAccessService {
         const result = await this.createLog(booking.id, dto.gateId, 'ALLOWED', 'Access granted');
         this.eventsGateway.emitBookingStatus(booking.id, 'CONSUMED');
         this.eventsGateway.emitQueueUpdate(booking.terminalId);
+        this.eventsGateway.emitGateAccess({
+            bookingId: booking.id,
+            gateId: gate.id,
+            gateName: gate.name,
+            result: 'ALLOWED',
+        });
         this.eventsGateway.emitPulseUpdate({
             type: 'gate-access',
             terminalId: booking.terminalId,
@@ -102,6 +122,7 @@ GateAccessService = GateAccessService_1 = __decorate([
     Injectable(),
     __metadata("design:paramtypes", [PrismaService,
         QrService,
+        BlockchainService,
         EventsGateway])
 ], GateAccessService);
 export { GateAccessService };

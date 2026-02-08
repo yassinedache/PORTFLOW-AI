@@ -12,8 +12,8 @@ export declare class CarrierController {
     getMyTrucks(carrierId: string): Promise<({
         locations: {
             id: string;
-            truckId: string;
             timestamp: Date;
+            truckId: string;
             lat: number;
             lng: number;
         }[];
@@ -29,37 +29,43 @@ export declare class CarrierController {
     createContainer(dto: CreateContainerDto, carrierId: string): Promise<{
         id: string;
         createdAt: Date;
+        terminalId: string | null;
         carrierId: string;
+        status: import("../../generated/prisma/enums.js").ContainerStatus;
         containerNumber: string;
+        lastUpdatedAt: Date | null;
     }>;
     getMyContainers(carrierId: string): Promise<({
         trackingEvents: {
+            type: import("../../generated/prisma/enums.js").TrackingEventType;
             id: string;
+            timestamp: Date;
             location: string;
             containerId: string;
-            type: import("../../generated/prisma/enums.js").TrackingEventType;
-            timestamp: Date;
         }[];
     } & {
         id: string;
         createdAt: Date;
+        terminalId: string | null;
         carrierId: string;
+        status: import("../../generated/prisma/enums.js").ContainerStatus;
         containerNumber: string;
+        lastUpdatedAt: Date | null;
     })[]>;
     deleteContainer(id: string, carrierId: string): Promise<{
         message: string;
     }>;
     updateTruckLocation(dto: UpdateTruckLocationDto, carrierId: string): Promise<{
         id: string;
-        truckId: string;
         timestamp: Date;
+        truckId: string;
         lat: number;
         lng: number;
     }>;
     getTruckLocations(truckId: string, carrierId: string): Promise<{
         id: string;
-        truckId: string;
         timestamp: Date;
+        truckId: string;
         lat: number;
         lng: number;
     }[]>;

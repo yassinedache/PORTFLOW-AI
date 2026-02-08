@@ -118,6 +118,7 @@ export type TimeSlotWhereInput = {
     capacity?: Prisma.IntFilter<"TimeSlot"> | number;
     terminal?: Prisma.XOR<Prisma.TerminalScalarRelationFilter, Prisma.TerminalWhereInput>;
     bookings?: Prisma.BookingListRelationFilter;
+    pricings?: Prisma.SlotPricingListRelationFilter;
 };
 export type TimeSlotOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -127,6 +128,7 @@ export type TimeSlotOrderByWithRelationInput = {
     capacity?: Prisma.SortOrder;
     terminal?: Prisma.TerminalOrderByWithRelationInput;
     bookings?: Prisma.BookingOrderByRelationAggregateInput;
+    pricings?: Prisma.SlotPricingOrderByRelationAggregateInput;
 };
 export type TimeSlotWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -139,6 +141,7 @@ export type TimeSlotWhereUniqueInput = Prisma.AtLeast<{
     capacity?: Prisma.IntFilter<"TimeSlot"> | number;
     terminal?: Prisma.XOR<Prisma.TerminalScalarRelationFilter, Prisma.TerminalWhereInput>;
     bookings?: Prisma.BookingListRelationFilter;
+    pricings?: Prisma.SlotPricingListRelationFilter;
 }, "id">;
 export type TimeSlotOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -169,6 +172,7 @@ export type TimeSlotCreateInput = {
     capacity: number;
     terminal: Prisma.TerminalCreateNestedOneWithoutTimeSlotsInput;
     bookings?: Prisma.BookingCreateNestedManyWithoutTimeSlotInput;
+    pricings?: Prisma.SlotPricingCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotUncheckedCreateInput = {
     id?: string;
@@ -177,6 +181,7 @@ export type TimeSlotUncheckedCreateInput = {
     endTime: Date | string;
     capacity: number;
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTimeSlotInput;
+    pricings?: Prisma.SlotPricingUncheckedCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -185,6 +190,7 @@ export type TimeSlotUpdateInput = {
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutTimeSlotsNestedInput;
     bookings?: Prisma.BookingUpdateManyWithoutTimeSlotNestedInput;
+    pricings?: Prisma.SlotPricingUpdateManyWithoutSlotNestedInput;
 };
 export type TimeSlotUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -193,6 +199,7 @@ export type TimeSlotUncheckedUpdateInput = {
     endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTimeSlotNestedInput;
+    pricings?: Prisma.SlotPricingUncheckedUpdateManyWithoutSlotNestedInput;
 };
 export type TimeSlotCreateManyInput = {
     id?: string;
@@ -310,12 +317,25 @@ export type TimeSlotUpdateOneRequiredWithoutBookingsNestedInput = {
     connect?: Prisma.TimeSlotWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.TimeSlotUpdateToOneWithWhereWithoutBookingsInput, Prisma.TimeSlotUpdateWithoutBookingsInput>, Prisma.TimeSlotUncheckedUpdateWithoutBookingsInput>;
 };
+export type TimeSlotCreateNestedOneWithoutPricingsInput = {
+    create?: Prisma.XOR<Prisma.TimeSlotCreateWithoutPricingsInput, Prisma.TimeSlotUncheckedCreateWithoutPricingsInput>;
+    connectOrCreate?: Prisma.TimeSlotCreateOrConnectWithoutPricingsInput;
+    connect?: Prisma.TimeSlotWhereUniqueInput;
+};
+export type TimeSlotUpdateOneRequiredWithoutPricingsNestedInput = {
+    create?: Prisma.XOR<Prisma.TimeSlotCreateWithoutPricingsInput, Prisma.TimeSlotUncheckedCreateWithoutPricingsInput>;
+    connectOrCreate?: Prisma.TimeSlotCreateOrConnectWithoutPricingsInput;
+    upsert?: Prisma.TimeSlotUpsertWithoutPricingsInput;
+    connect?: Prisma.TimeSlotWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.TimeSlotUpdateToOneWithWhereWithoutPricingsInput, Prisma.TimeSlotUpdateWithoutPricingsInput>, Prisma.TimeSlotUncheckedUpdateWithoutPricingsInput>;
+};
 export type TimeSlotCreateWithoutTerminalInput = {
     id?: string;
     startTime: Date | string;
     endTime: Date | string;
     capacity: number;
     bookings?: Prisma.BookingCreateNestedManyWithoutTimeSlotInput;
+    pricings?: Prisma.SlotPricingCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotUncheckedCreateWithoutTerminalInput = {
     id?: string;
@@ -323,6 +343,7 @@ export type TimeSlotUncheckedCreateWithoutTerminalInput = {
     endTime: Date | string;
     capacity: number;
     bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTimeSlotInput;
+    pricings?: Prisma.SlotPricingUncheckedCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotCreateOrConnectWithoutTerminalInput = {
     where: Prisma.TimeSlotWhereUniqueInput;
@@ -361,6 +382,7 @@ export type TimeSlotCreateWithoutBookingsInput = {
     endTime: Date | string;
     capacity: number;
     terminal: Prisma.TerminalCreateNestedOneWithoutTimeSlotsInput;
+    pricings?: Prisma.SlotPricingCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotUncheckedCreateWithoutBookingsInput = {
     id?: string;
@@ -368,6 +390,7 @@ export type TimeSlotUncheckedCreateWithoutBookingsInput = {
     startTime: Date | string;
     endTime: Date | string;
     capacity: number;
+    pricings?: Prisma.SlotPricingUncheckedCreateNestedManyWithoutSlotInput;
 };
 export type TimeSlotCreateOrConnectWithoutBookingsInput = {
     where: Prisma.TimeSlotWhereUniqueInput;
@@ -388,6 +411,7 @@ export type TimeSlotUpdateWithoutBookingsInput = {
     endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
     terminal?: Prisma.TerminalUpdateOneRequiredWithoutTimeSlotsNestedInput;
+    pricings?: Prisma.SlotPricingUpdateManyWithoutSlotNestedInput;
 };
 export type TimeSlotUncheckedUpdateWithoutBookingsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -395,6 +419,52 @@ export type TimeSlotUncheckedUpdateWithoutBookingsInput = {
     startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
+    pricings?: Prisma.SlotPricingUncheckedUpdateManyWithoutSlotNestedInput;
+};
+export type TimeSlotCreateWithoutPricingsInput = {
+    id?: string;
+    startTime: Date | string;
+    endTime: Date | string;
+    capacity: number;
+    terminal: Prisma.TerminalCreateNestedOneWithoutTimeSlotsInput;
+    bookings?: Prisma.BookingCreateNestedManyWithoutTimeSlotInput;
+};
+export type TimeSlotUncheckedCreateWithoutPricingsInput = {
+    id?: string;
+    terminalId: string;
+    startTime: Date | string;
+    endTime: Date | string;
+    capacity: number;
+    bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTimeSlotInput;
+};
+export type TimeSlotCreateOrConnectWithoutPricingsInput = {
+    where: Prisma.TimeSlotWhereUniqueInput;
+    create: Prisma.XOR<Prisma.TimeSlotCreateWithoutPricingsInput, Prisma.TimeSlotUncheckedCreateWithoutPricingsInput>;
+};
+export type TimeSlotUpsertWithoutPricingsInput = {
+    update: Prisma.XOR<Prisma.TimeSlotUpdateWithoutPricingsInput, Prisma.TimeSlotUncheckedUpdateWithoutPricingsInput>;
+    create: Prisma.XOR<Prisma.TimeSlotCreateWithoutPricingsInput, Prisma.TimeSlotUncheckedCreateWithoutPricingsInput>;
+    where?: Prisma.TimeSlotWhereInput;
+};
+export type TimeSlotUpdateToOneWithWhereWithoutPricingsInput = {
+    where?: Prisma.TimeSlotWhereInput;
+    data: Prisma.XOR<Prisma.TimeSlotUpdateWithoutPricingsInput, Prisma.TimeSlotUncheckedUpdateWithoutPricingsInput>;
+};
+export type TimeSlotUpdateWithoutPricingsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    capacity?: Prisma.IntFieldUpdateOperationsInput | number;
+    terminal?: Prisma.TerminalUpdateOneRequiredWithoutTimeSlotsNestedInput;
+    bookings?: Prisma.BookingUpdateManyWithoutTimeSlotNestedInput;
+};
+export type TimeSlotUncheckedUpdateWithoutPricingsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    terminalId?: Prisma.StringFieldUpdateOperationsInput | string;
+    startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    capacity?: Prisma.IntFieldUpdateOperationsInput | number;
+    bookings?: Prisma.BookingUncheckedUpdateManyWithoutTimeSlotNestedInput;
 };
 export type TimeSlotCreateManyTerminalInput = {
     id?: string;
@@ -408,6 +478,7 @@ export type TimeSlotUpdateWithoutTerminalInput = {
     endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
     bookings?: Prisma.BookingUpdateManyWithoutTimeSlotNestedInput;
+    pricings?: Prisma.SlotPricingUpdateManyWithoutSlotNestedInput;
 };
 export type TimeSlotUncheckedUpdateWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -415,6 +486,7 @@ export type TimeSlotUncheckedUpdateWithoutTerminalInput = {
     endTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     capacity?: Prisma.IntFieldUpdateOperationsInput | number;
     bookings?: Prisma.BookingUncheckedUpdateManyWithoutTimeSlotNestedInput;
+    pricings?: Prisma.SlotPricingUncheckedUpdateManyWithoutSlotNestedInput;
 };
 export type TimeSlotUncheckedUpdateManyWithoutTerminalInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -424,15 +496,20 @@ export type TimeSlotUncheckedUpdateManyWithoutTerminalInput = {
 };
 export type TimeSlotCountOutputType = {
     bookings: number;
+    pricings: number;
 };
 export type TimeSlotCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     bookings?: boolean | TimeSlotCountOutputTypeCountBookingsArgs;
+    pricings?: boolean | TimeSlotCountOutputTypeCountPricingsArgs;
 };
 export type TimeSlotCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TimeSlotCountOutputTypeSelect<ExtArgs> | null;
 };
 export type TimeSlotCountOutputTypeCountBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.BookingWhereInput;
+};
+export type TimeSlotCountOutputTypeCountPricingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.SlotPricingWhereInput;
 };
 export type TimeSlotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -442,6 +519,7 @@ export type TimeSlotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     capacity?: boolean;
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     bookings?: boolean | Prisma.TimeSlot$bookingsArgs<ExtArgs>;
+    pricings?: boolean | Prisma.TimeSlot$pricingsArgs<ExtArgs>;
     _count?: boolean | Prisma.TimeSlotCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["timeSlot"]>;
 export type TimeSlotSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -471,6 +549,7 @@ export type TimeSlotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type TimeSlotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>;
     bookings?: boolean | Prisma.TimeSlot$bookingsArgs<ExtArgs>;
+    pricings?: boolean | Prisma.TimeSlot$pricingsArgs<ExtArgs>;
     _count?: boolean | Prisma.TimeSlotCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type TimeSlotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -484,6 +563,7 @@ export type $TimeSlotPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     objects: {
         terminal: Prisma.$TerminalPayload<ExtArgs>;
         bookings: Prisma.$BookingPayload<ExtArgs>[];
+        pricings: Prisma.$SlotPricingPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -545,6 +625,7 @@ export interface Prisma__TimeSlotClient<T, Null = never, ExtArgs extends runtime
     readonly [Symbol.toStringTag]: "PrismaPromise";
     terminal<T extends Prisma.TerminalDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TerminalDefaultArgs<ExtArgs>>): Prisma.Prisma__TerminalClient<runtime.Types.Result.GetResult<Prisma.$TerminalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     bookings<T extends Prisma.TimeSlot$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TimeSlot$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    pricings<T extends Prisma.TimeSlot$pricingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TimeSlot$pricingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SlotPricingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -666,6 +747,17 @@ export type TimeSlot$bookingsArgs<ExtArgs extends runtime.Types.Extensions.Inter
     take?: number;
     skip?: number;
     distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[];
+};
+export type TimeSlot$pricingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.SlotPricingSelect<ExtArgs> | null;
+    omit?: Prisma.SlotPricingOmit<ExtArgs> | null;
+    include?: Prisma.SlotPricingInclude<ExtArgs> | null;
+    where?: Prisma.SlotPricingWhereInput;
+    orderBy?: Prisma.SlotPricingOrderByWithRelationInput | Prisma.SlotPricingOrderByWithRelationInput[];
+    cursor?: Prisma.SlotPricingWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.SlotPricingScalarFieldEnum | Prisma.SlotPricingScalarFieldEnum[];
 };
 export type TimeSlotDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TimeSlotSelect<ExtArgs> | null;

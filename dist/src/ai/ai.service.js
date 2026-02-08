@@ -17,22 +17,25 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { SlotsService } from '../slots/slots.service.js';
 import { BookingService } from '../booking/booking.service.js';
 import { toOpenAiTools } from './ai-tools.js';
+import { EventsGateway } from '../events/events.gateway.js';
 let AiService = AiService_1 = class AiService {
     prisma;
     configService;
     slotsService;
     bookingService;
+    eventsGateway;
     logger = new Logger(AiService_1.name);
     aiProvider;
     aiApiKey;
     aiModel;
     aiBaseUrl;
     aiTestMode;
-    constructor(prisma, configService, slotsService, bookingService) {
+    constructor(prisma, configService, slotsService, bookingService, eventsGateway) {
         this.prisma = prisma;
         this.configService = configService;
         this.slotsService = slotsService;
         this.bookingService = bookingService;
+        this.eventsGateway = eventsGateway;
         this.aiProvider = this.configService.get('AI_PROVIDER', 'rule-based');
         this.aiApiKey = this.configService.get('AI_API_KEY');
         this.aiModel = this.configService.get('AI_MODEL', 'openai/gpt-oss-120b:free');
@@ -255,7 +258,7 @@ let AiService = AiService_1 = class AiService {
                 terminal: s.terminalName,
                 start: s.startTime,
                 end: s.endTime,
-                available: s.available,
+                available: s.availableCount,
                 capacity: s.capacity,
             })),
             total: availability.length,
@@ -325,7 +328,7 @@ let AiService = AiService_1 = class AiService {
                 terminalId: args.terminalId,
                 timeSlotId: args.timeSlotId,
                 truckId: args.truckId,
-                containerId: args.containerId,
+                containerId: args.containerId || '',
             }, user);
             return {
                 id: booking.id,
@@ -416,7 +419,7 @@ let AiService = AiService_1 = class AiService {
         const summary = availability.slice(0, 5).map((slot) => {
             const start = new Date(slot.startTime).toLocaleString();
             const end = new Date(slot.endTime).toLocaleString();
-            return `• **${slot.terminalName}**: ${start} - ${end} | ${slot.available}/${slot.capacity} spots`;
+            return `• **${slot.terminalName}**: ${start} - ${end} | ${slot.availableCount}/${slot.capacity} spots`;
         });
         return (`Here are the available slots${resolvedDate ? ` for ${resolvedDate}` : ''}:\n\n` +
             summary.join('\n') +
@@ -1368,7 +1371,7 @@ let AiService = AiService_1 = class AiService {
             '• EXPORT_COMPLIANCE_DATA — Export audit/compliance data (use complianceExport)\n\n' +
             '── META / SYSTEM INTENTS ──\n' +
             '• EXPLAIN_AI_DECISION — Why did AI recommend this? (use aiDecisionExplanation)\n' +
-            '• SIMULATE_USER_ACTION — What happens if I don\'t act? (use worstCaseSimulation)\n' +
+            "• SIMULATE_USER_ACTION — What happens if I don't act? (use worstCaseSimulation)\n" +
             '• SYSTEM_HEALTH — Is the system healthy? (use systemHealth)\n' +
             '• TRAIN_NEW_USER — Onboarding / teach me how to use this (use onboardingGuide)\n' +
             '• EXPLAIN_TERM — Define a port/system term (use glossary)\n\n' +
@@ -1455,6 +1458,98 @@ let AiService = AiService_1 = class AiService {
             this.logger.error(`[AI PROVIDER ERROR] test-chat exception: ${error}`);
             return { error: 'AI_PROVIDER_ERROR', details: String(error) };
         }
+    }
+    async getReadinessPrediction(bookingId) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: {
+                container: true,
+                terminal: { select: { name: true } },
+                timeSlot: { select: { startTime: true, endTime: true } },
+            },
+        });
+        if (!booking) {
+            return {
+                bookingId,
+                error: 'Booking not found',
+            };
+        }
+        const blockers = [];
+        let probability = 100;
+        if (booking.container) {
+            if (booking.container.status === 'NOT_ARRIVED') {
+                blockers.push('Container has not arrived at the terminal');
+                probability -= 40;
+            }
+            else if (booking.container.status === 'IN_YARD') {
+                blockers.push('Container is in yard but not yet cleared/ready');
+                probability -= 20;
+            }
+        }
+        else if (booking.containerId) {
+            blockers.push('Container record not found');
+            probability -= 30;
+        }
+        if (booking.status === 'PENDING') {
+            blockers.push('Booking is still pending operator approval');
+            probability -= 30;
+        }
+        else if (booking.status === 'AT_RISK') {
+            blockers.push('Booking is flagged as at-risk');
+            probability -= 20;
+        }
+        if (!booking.blockchainHash) {
+            blockers.push('No blockchain proof generated yet');
+            probability -= 10;
+        }
+        if (!booking.qrToken) {
+            blockers.push('QR code not yet generated');
+            probability -= 10;
+        }
+        if (booking.timeSlot) {
+            const now = new Date();
+            const slotStart = new Date(booking.timeSlot.startTime);
+            const hoursUntil = (slotStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+            if (hoursUntil < 0) {
+                blockers.push('Time slot has already passed');
+                probability -= 30;
+            }
+        }
+        probability = Math.max(0, Math.min(100, probability));
+        const riskLevel = probability >= 80 ? 'LOW' : probability >= 50 ? 'MEDIUM' : 'HIGH';
+        await this.prisma.readinessPrediction.create({
+            data: {
+                bookingId,
+                probability,
+                riskLevel,
+                computedAt: new Date(),
+            },
+        });
+        if (probability < 50 &&
+            (booking.status === 'CONFIRMED' || booking.status === 'PENDING')) {
+            await this.prisma.booking.update({
+                where: { id: bookingId },
+                data: { status: 'AT_RISK' },
+            });
+            this.eventsGateway.emitBookingAtRisk(bookingId, {
+                probability,
+                riskLevel,
+                blockers,
+            });
+        }
+        return {
+            bookingId,
+            status: booking.status,
+            containerStatus: booking.container?.status || null,
+            terminal: booking.terminal?.name || null,
+            timeSlot: booking.timeSlot || null,
+            probability,
+            riskLevel,
+            blockers,
+            recommendation: blockers.length === 0
+                ? 'Booking is fully ready for gate entry'
+                : `${blockers.length} issue(s) need attention before gate entry`,
+        };
     }
     MOCK_SLOTS = [
         { date: '2026-02-07', start: '08:00', end: '09:00', congestion: 'high' },
@@ -1580,7 +1675,8 @@ AiService = AiService_1 = __decorate([
     __metadata("design:paramtypes", [PrismaService,
         ConfigService,
         SlotsService,
-        BookingService])
+        BookingService,
+        EventsGateway])
 ], AiService);
 export { AiService };
 //# sourceMappingURL=ai.service.js.map

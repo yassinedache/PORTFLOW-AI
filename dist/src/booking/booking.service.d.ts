@@ -14,15 +14,16 @@ export declare class BookingService {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     }>;
     findMyBookings(userId: string): Promise<({
@@ -38,22 +39,23 @@ export declare class BookingService {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     })[]>;
     findOne(id: string): Promise<{
         terminal: {
             id: string;
-            name: string;
             createdAt: Date;
+            name: string;
             location: string;
             isActive: boolean;
         };
@@ -67,9 +69,12 @@ export declare class BookingService {
         container: {
             id: string;
             createdAt: Date;
+            terminalId: string | null;
             carrierId: string;
+            status: import("../../generated/prisma/enums.js").ContainerStatus;
             containerNumber: string;
-        } | null;
+            lastUpdatedAt: Date | null;
+        };
         truck: {
             id: string;
             createdAt: Date;
@@ -77,37 +82,39 @@ export declare class BookingService {
             plate: string;
         } | null;
         carrier: {
-            id: string;
             email: string;
+            id: string;
         };
     } & {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     }>;
     cancel(id: string, userId: string): Promise<{
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     }>;
     approve(id: string): Promise<{
@@ -115,15 +122,16 @@ export declare class BookingService {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     }>;
     reject(id: string, reason?: string): Promise<{
@@ -131,17 +139,25 @@ export declare class BookingService {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     }>;
+    rescheduleOptions(id: string): Promise<{
+        slotId: string;
+        startTime: Date;
+        endTime: Date;
+        availableCapacity: number;
+        totalCapacity: number;
+    }[]>;
     getOperatorQueue(terminalId?: string): Promise<({
         terminal: {
             id: string;
@@ -155,22 +171,23 @@ export declare class BookingService {
             plate: string;
         } | null;
         carrier: {
-            id: string;
             email: string;
+            id: string;
         };
     } & {
         id: string;
         createdAt: Date;
         terminalId: string;
-        carrierId: string;
         timeSlotId: string;
-        status: import("../../generated/prisma/enums.js").BookingStatus;
+        truckId: string | null;
+        containerId: string;
+        idempotencyKey: string | null;
         price: number | null;
+        carrierId: string;
+        status: import("../../generated/prisma/enums.js").BookingStatus;
+        readinessScore: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
-        idempotencyKey: string | null;
-        truckId: string | null;
-        containerId: string | null;
         validatedAt: Date | null;
     })[]>;
 }

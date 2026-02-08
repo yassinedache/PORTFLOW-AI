@@ -7,14 +7,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Injectable, NotFoundException } from '@nestjs/common';
+var OperatorService_1;
+import { Injectable, NotFoundException, BadRequestException, } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
 let OperatorService = class OperatorService {
+    static { OperatorService_1 = this; }
     prisma;
+    blockchainService;
     eventsGateway;
-    constructor(prisma, eventsGateway) {
+    constructor(prisma, blockchainService, eventsGateway) {
         this.prisma = prisma;
+        this.blockchainService = blockchainService;
         this.eventsGateway = eventsGateway;
     }
     async getQueue(terminalId) {
@@ -54,9 +59,7 @@ let OperatorService = class OperatorService {
         const recentDenials = await this.prisma.gateAccessLog.findMany({
             where: {
                 result: 'DENIED',
-                ...(terminalId
-                    ? { gate: { terminalId } }
-                    : {}),
+                ...(terminalId ? { gate: { terminalId } } : {}),
             },
             include: {
                 gate: { select: { name: true, terminalId: true } },
@@ -98,10 +101,91 @@ let OperatorService = class OperatorService {
             capacityAlerts,
         };
     }
+    static VALID_TRANSITIONS = {
+        NOT_ARRIVED: ['IN_YARD'],
+        IN_YARD: ['READY'],
+        READY: ['RELEASED'],
+        RELEASED: [],
+    };
+    async updateContainerStatus(containerId, newStatus) {
+        const container = await this.prisma.container.findUnique({
+            where: { id: containerId },
+        });
+        if (!container)
+            throw new NotFoundException('Container not found');
+        const allowed = OperatorService_1.VALID_TRANSITIONS[container.status] || [];
+        if (!allowed.includes(newStatus)) {
+            throw new BadRequestException(`Invalid status transition: ${container.status} → ${newStatus}. Allowed: ${allowed.join(', ') || 'none'}`);
+        }
+        const updated = await this.prisma.container.update({
+            where: { id: containerId },
+            data: { status: newStatus, lastUpdatedAt: new Date() },
+        });
+        this.eventsGateway.emitPulseUpdate({
+            type: 'container-status',
+            containerId,
+            oldStatus: container.status,
+            newStatus,
+        });
+        return updated;
+    }
+    async confirmReadiness(bookingId, userId) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: { container: true },
+        });
+        if (!booking)
+            throw new NotFoundException('Booking not found');
+        if (booking.status !== 'CONFIRMED') {
+            throw new BadRequestException(`Cannot confirm readiness for booking with status: ${booking.status}. Must be CONFIRMED.`);
+        }
+        if (booking.container && booking.container.status !== 'READY') {
+            throw new BadRequestException(`Container status is ${booking.container.status}, expected READY`);
+        }
+        const blockchainHash = await this.blockchainService.hashBooking({
+            bookingId: booking.id,
+            carrierId: booking.carrierId,
+            terminalId: booking.terminalId,
+            timeSlotId: booking.timeSlotId,
+        });
+        const updated = await this.prisma.booking.update({
+            where: { id: bookingId },
+            data: {
+                status: 'READY_TO_GO',
+                blockchainHash,
+                readinessScore: 1.0,
+            },
+            include: {
+                terminal: { select: { name: true } },
+                timeSlot: { select: { startTime: true, endTime: true } },
+            },
+        });
+        await this.prisma.readinessProof.create({
+            data: {
+                bookingId,
+                containerId: booking.containerId,
+                confirmedBy: userId || booking.carrierId,
+                blockchainHash,
+            },
+        });
+        await this.blockchainService.createProof('READINESS', bookingId, {
+            bookingId: booking.id,
+            carrierId: booking.carrierId,
+            terminalId: booking.terminalId,
+            timeSlotId: booking.timeSlotId,
+        });
+        this.eventsGateway.emitBookingStatus(bookingId, 'READY_TO_GO');
+        this.eventsGateway.emitBookingReady(bookingId, {
+            terminal: updated.terminal?.name,
+            slot: updated.timeSlot,
+        });
+        return updated;
+    }
 };
-OperatorService = __decorate([
+OperatorService = OperatorService_1 = __decorate([
     Injectable(),
     __metadata("design:paramtypes", [PrismaService,
+        BlockchainService,
         EventsGateway])
 ], OperatorService);
 export { OperatorService };

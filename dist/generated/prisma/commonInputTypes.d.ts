@@ -269,6 +269,21 @@ export type EnumGateAccessResultWithAggregatesFilter<$PrismaModel = never> = {
     _min?: Prisma.NestedEnumGateAccessResultFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumGateAccessResultFilter<$PrismaModel>;
 };
+export type EnumContainerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ContainerStatus | Prisma.EnumContainerStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel> | $Enums.ContainerStatus;
+};
+export type EnumContainerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ContainerStatus | Prisma.EnumContainerStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumContainerStatusWithAggregatesFilter<$PrismaModel> | $Enums.ContainerStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel>;
+};
 export type EnumTrackingEventTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.TrackingEventType | Prisma.EnumTrackingEventTypeFieldRefInput<$PrismaModel>;
     in?: $Enums.TrackingEventType[] | Prisma.ListEnumTrackingEventTypeFieldRefInput<$PrismaModel>;
@@ -666,6 +681,21 @@ export type NestedEnumGateAccessResultWithAggregatesFilter<$PrismaModel = never>
     _count?: Prisma.NestedIntFilter<$PrismaModel>;
     _min?: Prisma.NestedEnumGateAccessResultFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumGateAccessResultFilter<$PrismaModel>;
+};
+export type NestedEnumContainerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ContainerStatus | Prisma.EnumContainerStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel> | $Enums.ContainerStatus;
+};
+export type NestedEnumContainerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ContainerStatus | Prisma.EnumContainerStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ContainerStatus[] | Prisma.ListEnumContainerStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumContainerStatusWithAggregatesFilter<$PrismaModel> | $Enums.ContainerStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumContainerStatusFilter<$PrismaModel>;
 };
 export type NestedEnumTrackingEventTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.TrackingEventType | Prisma.EnumTrackingEventTypeFieldRefInput<$PrismaModel>;

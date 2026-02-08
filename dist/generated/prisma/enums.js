@@ -7,9 +7,17 @@ export const Role = {
 export const BookingStatus = {
     PENDING: 'PENDING',
     CONFIRMED: 'CONFIRMED',
+    AT_RISK: 'AT_RISK',
+    READY_TO_GO: 'READY_TO_GO',
     REJECTED: 'REJECTED',
     CONSUMED: 'CONSUMED',
     CANCELLED: 'CANCELLED'
+};
+export const ContainerStatus = {
+    NOT_ARRIVED: 'NOT_ARRIVED',
+    IN_YARD: 'IN_YARD',
+    READY: 'READY',
+    RELEASED: 'RELEASED'
 };
 export const GateAccessResult = {
     ALLOWED: 'ALLOWED',

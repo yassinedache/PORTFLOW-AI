@@ -23,8 +23,8 @@ export declare class GateController {
     findOne(id: string): Promise<{
         terminal: {
             id: string;
-            name: string;
             createdAt: Date;
+            name: string;
             location: string;
             isActive: boolean;
         };

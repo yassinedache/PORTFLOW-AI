@@ -70,8 +70,8 @@ export class SlotsService {
       startTime: slot.startTime,
       endTime: slot.endTime,
       capacity: slot.capacity,
-      booked: slot._count.bookings,
-      available: slot.capacity - slot._count.bookings,
+      bookedCount: slot._count.bookings,
+      availableCount: slot.capacity - slot._count.bookings,
     }));
   }
 

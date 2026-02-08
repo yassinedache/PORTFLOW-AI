@@ -9,11 +9,12 @@ import { AiService } from './ai.service.js';
 import { AiController } from './ai.controller.js';
 import { SlotsModule } from '../slots/slots.module.js';
 import { BookingModule } from '../booking/booking.module.js';
+import { EventsModule } from '../events/events.module.js';
 let AiModule = class AiModule {
 };
 AiModule = __decorate([
     Module({
-        imports: [SlotsModule, BookingModule],
+        imports: [SlotsModule, BookingModule, EventsModule],
         controllers: [AiController],
         providers: [AiService],
         exports: [AiService],

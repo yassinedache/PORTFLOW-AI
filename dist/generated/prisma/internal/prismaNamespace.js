@@ -31,6 +31,9 @@ export const ModelName = {
     Gate: 'Gate',
     TimeSlot: 'TimeSlot',
     Booking: 'Booking',
+    ReadinessPrediction: 'ReadinessPrediction',
+    ReadinessProof: 'ReadinessProof',
+    BlockchainProof: 'BlockchainProof',
     GateAccessLog: 'GateAccessLog',
     Container: 'Container',
     TrackingEvent: 'TrackingEvent',
@@ -42,7 +45,10 @@ export const ModelName = {
     AiMessage: 'AiMessage',
     Zone: 'Zone',
     AuditLog: 'AuditLog',
-    MetricDaily: 'MetricDaily'
+    MetricDaily: 'MetricDaily',
+    SlotPricing: 'SlotPricing',
+    PriorityAccess: 'PriorityAccess',
+    Penalty: 'Penalty'
 };
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -97,6 +103,7 @@ export const BookingScalarFieldEnum = {
     terminalId: 'terminalId',
     timeSlotId: 'timeSlotId',
     status: 'status',
+    readinessScore: 'readinessScore',
     price: 'price',
     qrToken: 'qrToken',
     blockchainHash: 'blockchainHash',
@@ -105,6 +112,29 @@ export const BookingScalarFieldEnum = {
     containerId: 'containerId',
     createdAt: 'createdAt',
     validatedAt: 'validatedAt'
+};
+export const ReadinessPredictionScalarFieldEnum = {
+    id: 'id',
+    bookingId: 'bookingId',
+    probability: 'probability',
+    riskLevel: 'riskLevel',
+    computedAt: 'computedAt'
+};
+export const ReadinessProofScalarFieldEnum = {
+    id: 'id',
+    bookingId: 'bookingId',
+    containerId: 'containerId',
+    confirmedBy: 'confirmedBy',
+    confirmedAt: 'confirmedAt',
+    blockchainHash: 'blockchainHash'
+};
+export const BlockchainProofScalarFieldEnum = {
+    id: 'id',
+    entityType: 'entityType',
+    entityId: 'entityId',
+    hash: 'hash',
+    payloadHash: 'payloadHash',
+    createdAt: 'createdAt'
 };
 export const GateAccessLogScalarFieldEnum = {
     id: 'id',
@@ -118,6 +148,9 @@ export const ContainerScalarFieldEnum = {
     id: 'id',
     containerNumber: 'containerNumber',
     carrierId: 'carrierId',
+    terminalId: 'terminalId',
+    status: 'status',
+    lastUpdatedAt: 'lastUpdatedAt',
     createdAt: 'createdAt'
 };
 export const TrackingEventScalarFieldEnum = {
@@ -194,6 +227,31 @@ export const MetricDailyScalarFieldEnum = {
     avgWaitingTime: 'avgWaitingTime',
     totalBookings: 'totalBookings',
     revenue: 'revenue'
+};
+export const SlotPricingScalarFieldEnum = {
+    id: 'id',
+    slotId: 'slotId',
+    basePrice: 'basePrice',
+    multiplier: 'multiplier',
+    finalPrice: 'finalPrice',
+    reason: 'reason',
+    isEcoSlot: 'isEcoSlot',
+    computedAt: 'computedAt'
+};
+export const PriorityAccessScalarFieldEnum = {
+    id: 'id',
+    bookingId: 'bookingId',
+    level: 'level',
+    fee: 'fee',
+    createdAt: 'createdAt'
+};
+export const PenaltyScalarFieldEnum = {
+    id: 'id',
+    bookingId: 'bookingId',
+    type: 'type',
+    amount: 'amount',
+    reason: 'reason',
+    appliedAt: 'appliedAt'
 };
 export const SortOrder = {
     asc: 'asc',

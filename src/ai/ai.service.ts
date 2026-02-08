@@ -362,7 +362,7 @@ export class AiService {
         terminal: s.terminalName,
         start: s.startTime,
         end: s.endTime,
-        available: s.available,
+        available: s.availableCount,
         capacity: s.capacity,
       })),
       total: availability.length,
@@ -584,7 +584,7 @@ export class AiService {
     const summary = availability.slice(0, 5).map((slot) => {
       const start = new Date(slot.startTime).toLocaleString();
       const end = new Date(slot.endTime).toLocaleString();
-      return `• **${slot.terminalName}**: ${start} - ${end} | ${slot.available}/${slot.capacity} spots`;
+      return `• **${slot.terminalName}**: ${start} - ${end} | ${slot.availableCount}/${slot.capacity} spots`;
     });
 
     return (

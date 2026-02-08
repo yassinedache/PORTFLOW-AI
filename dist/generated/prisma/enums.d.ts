@@ -8,11 +8,20 @@ export type Role = (typeof Role)[keyof typeof Role];
 export declare const BookingStatus: {
     readonly PENDING: "PENDING";
     readonly CONFIRMED: "CONFIRMED";
+    readonly AT_RISK: "AT_RISK";
+    readonly READY_TO_GO: "READY_TO_GO";
     readonly REJECTED: "REJECTED";
     readonly CONSUMED: "CONSUMED";
     readonly CANCELLED: "CANCELLED";
 };
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
+export declare const ContainerStatus: {
+    readonly NOT_ARRIVED: "NOT_ARRIVED";
+    readonly IN_YARD: "IN_YARD";
+    readonly READY: "READY";
+    readonly RELEASED: "RELEASED";
+};
+export type ContainerStatus = (typeof ContainerStatus)[keyof typeof ContainerStatus];
 export declare const GateAccessResult: {
     readonly ALLOWED: "ALLOWED";
     readonly DENIED: "DENIED";

@@ -21,11 +21,11 @@ export declare class PublicService {
     trackContainer(containerNumber: string): Promise<{
         containerNumber: string;
         events: {
+            type: import("../../generated/prisma/enums.js").TrackingEventType;
             id: string;
+            timestamp: Date;
             location: string;
             containerId: string;
-            type: import("../../generated/prisma/enums.js").TrackingEventType;
-            timestamp: Date;
         }[];
     }>;
 }

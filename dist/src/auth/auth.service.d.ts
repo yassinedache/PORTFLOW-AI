@@ -9,9 +9,9 @@ export declare class AuthService {
     private readonly configService;
     constructor(prisma: PrismaService, jwtService: JwtService, configService: ConfigService);
     register(dto: RegisterDto): Promise<{
-        id: string;
         email: string;
         role: import("../../generated/prisma/enums.js").Role;
+        id: string;
     }>;
     login(dto: LoginDto): Promise<{
         accessToken: string;
@@ -26,10 +26,10 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         user: {
-            id: string;
             email: string;
-            role: import("../../generated/prisma/enums.js").Role;
             deviceId: string | null;
+            role: import("../../generated/prisma/enums.js").Role;
+            id: string;
         };
     }>;
     logout(refreshToken: string): Promise<{

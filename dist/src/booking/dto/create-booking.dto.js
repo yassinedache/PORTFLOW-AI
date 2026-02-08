@@ -34,13 +34,14 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "truckId", void 0);
 __decorate([
-    ApiPropertyOptional({ description: 'Container ID' }),
-    IsOptional(),
+    ApiProperty({ description: 'Container ID (mandatory per PRD)' }),
     IsUUID(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "containerId", void 0);
 __decorate([
-    ApiPropertyOptional({ description: 'Idempotency key to prevent duplicate bookings' }),
+    ApiPropertyOptional({
+        description: 'Idempotency key to prevent duplicate bookings',
+    }),
     IsOptional(),
     IsString(),
     __metadata("design:type", String)

@@ -11,18 +11,18 @@ export declare class AuditService {
     }): Promise<{
         data: ({
             user: {
-                id: string;
                 email: string;
                 role: import("../../generated/prisma/enums.js").Role;
+                id: string;
             } | null;
         } & {
             id: string;
             userId: string | null;
-            timestamp: Date;
             action: string;
             entity: string;
             entityId: string | null;
             meta: import("@prisma/client/runtime/client").JsonValue | null;
+            timestamp: Date;
         })[];
         pagination: {
             page: number;
@@ -51,8 +51,8 @@ export declare class AuditService {
             id: string;
             terminalId: string;
             date: Date;
-            avgWaitingTime: number;
             totalBookings: number;
+            avgWaitingTime: number;
             revenue: number;
         })[];
     }>;

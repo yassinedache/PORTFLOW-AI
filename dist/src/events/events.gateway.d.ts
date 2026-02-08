@@ -23,5 +23,14 @@ export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection
         lng: number;
         timestamp: Date;
     }): void;
+    emitBookingAtRisk(bookingId: string, data?: any): void;
+    emitBookingReady(bookingId: string, data?: any): void;
+    emitGateAccess(data: {
+        bookingId: string;
+        gateId: string;
+        gateName: string;
+        result: string;
+        reason?: string;
+    }): void;
     handleSubscribeTruck(client: Socket, truckId: string): void;
 }
