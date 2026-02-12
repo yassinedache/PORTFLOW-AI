@@ -8,14 +8,24 @@ export declare class AiController {
         id: string;
         createdAt: Date;
         userId: string;
+        status: string;
+        currentIntent: string | null;
+        lastQuestionType: string | null;
+        context: import("@prisma/client/runtime/client").JsonValue | null;
+    }>;
+    newChat(user: RequestUser): Promise<{
+        sessionId: string;
+        status: string;
+        greeting: string;
     }>;
     query(dto: AiQueryDto, user: RequestUser): Promise<{
         sessionId: string;
         response: string;
+        state: import("./ai.service.js").ConversationState;
     }>;
     getHistory(id: string, user: RequestUser): Promise<{
-        id: string;
         role: import("../../generated/prisma/enums.js").AiMessageRole;
+        id: string;
         content: string;
         timestamp: Date;
         sessionId: string;

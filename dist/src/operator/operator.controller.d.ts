@@ -5,6 +5,10 @@ export declare class OperatorController {
     private readonly operatorService;
     constructor(operatorService: OperatorService);
     getQueue(terminalId?: string): Promise<({
+        carrier: {
+            id: string;
+            email: string;
+        };
         terminal: {
             id: string;
             name: string;
@@ -16,24 +20,20 @@ export declare class OperatorController {
         truck: {
             plate: string;
         } | null;
-        carrier: {
-            email: string;
-            id: string;
-        };
     } & {
         id: string;
-        createdAt: Date;
+        carrierId: string;
         terminalId: string;
         timeSlotId: string;
-        truckId: string | null;
-        containerId: string;
-        idempotencyKey: string | null;
-        price: number | null;
-        carrierId: string;
         status: import("../../generated/prisma/enums.js").BookingStatus;
         readinessScore: number | null;
+        price: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
+        idempotencyKey: string | null;
+        truckId: string | null;
+        containerId: string;
+        createdAt: Date;
         validatedAt: Date | null;
     })[]>;
     overrideCapacity(dto: CapacityOverrideDto): Promise<{
@@ -45,20 +45,20 @@ export declare class OperatorController {
     }>;
     getAlerts(terminalId?: string): Promise<{
         denials: ({
-            gate: {
-                name: string;
-                terminalId: string;
-            };
             booking: {
                 id: string;
                 carrierId: string;
             };
+            gate: {
+                terminalId: string;
+                name: string;
+            };
         } & {
-            id: string;
             result: import("../../generated/prisma/enums.js").GateAccessResult;
-            reason: string | null;
+            id: string;
             bookingId: string;
             gateId: string;
+            reason: string | null;
             scannedAt: Date;
         })[];
         capacityAlerts: {
@@ -73,14 +73,17 @@ export declare class OperatorController {
     }>;
     updateContainerStatus(id: string, dto: UpdateContainerStatusDto): Promise<{
         id: string;
-        createdAt: Date;
-        terminalId: string | null;
         carrierId: string;
+        terminalId: string | null;
         status: import("../../generated/prisma/enums.js").ContainerStatus;
+        createdAt: Date;
         containerNumber: string;
         lastUpdatedAt: Date | null;
     }>;
     confirmReadiness(id: string, req: any): Promise<{
+        warning?: string | undefined;
+        readinessStatus: string;
+        confirmedAt: string;
         terminal: {
             name: string;
         };
@@ -88,20 +91,19 @@ export declare class OperatorController {
             startTime: Date;
             endTime: Date;
         };
-    } & {
         id: string;
-        createdAt: Date;
+        carrierId: string;
         terminalId: string;
         timeSlotId: string;
-        truckId: string | null;
-        containerId: string;
-        idempotencyKey: string | null;
-        price: number | null;
-        carrierId: string;
         status: import("../../generated/prisma/enums.js").BookingStatus;
         readinessScore: number | null;
+        price: number | null;
         qrToken: string | null;
         blockchainHash: string | null;
+        idempotencyKey: string | null;
+        truckId: string | null;
+        containerId: string;
+        createdAt: Date;
         validatedAt: Date | null;
     }>;
 }

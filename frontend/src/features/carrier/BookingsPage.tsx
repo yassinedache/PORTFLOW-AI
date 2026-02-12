@@ -280,12 +280,15 @@ export default function BookingsPage() {
               <Label>Truck (optional)</Label>
               <Select
                 value={form.truckId}
-                onValueChange={(v) => setForm((f) => ({ ...f, truckId: v }))}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, truckId: v === 'none' ? '' : v }))
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select truck" />
+                  <SelectValue placeholder="No truck selected" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">No truck</SelectItem>
                   {trucks?.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {t.plate}

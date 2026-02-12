@@ -2309,6 +2309,10 @@ export declare const AiSessionScalarFieldEnum: {
     readonly id: "id";
     readonly userId: "userId";
     readonly createdAt: "createdAt";
+    readonly currentIntent: "currentIntent";
+    readonly status: "status";
+    readonly lastQuestionType: "lastQuestionType";
+    readonly context: "context";
 };
 export type AiSessionScalarFieldEnum = (typeof AiSessionScalarFieldEnum)[keyof typeof AiSessionScalarFieldEnum];
 export declare const AiMessageScalarFieldEnum: {

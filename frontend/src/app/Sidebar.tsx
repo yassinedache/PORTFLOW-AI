@@ -63,6 +63,11 @@ const operatorNav: NavItem[] = [
     icon: ClipboardList,
   },
   {
+    label: 'Confirmed',
+    path: '/app/operator/bookings/confirmed',
+    icon: CalendarClock,
+  },
+  {
     label: 'Containers',
     path: '/app/operator/operations/containers',
     icon: Container,

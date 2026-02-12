@@ -10,32 +10,52 @@ export type AiSessionMinAggregateOutputType = {
     id: string | null;
     userId: string | null;
     createdAt: Date | null;
+    currentIntent: string | null;
+    status: string | null;
+    lastQuestionType: string | null;
 };
 export type AiSessionMaxAggregateOutputType = {
     id: string | null;
     userId: string | null;
     createdAt: Date | null;
+    currentIntent: string | null;
+    status: string | null;
+    lastQuestionType: string | null;
 };
 export type AiSessionCountAggregateOutputType = {
     id: number;
     userId: number;
     createdAt: number;
+    currentIntent: number;
+    status: number;
+    lastQuestionType: number;
+    context: number;
     _all: number;
 };
 export type AiSessionMinAggregateInputType = {
     id?: true;
     userId?: true;
     createdAt?: true;
+    currentIntent?: true;
+    status?: true;
+    lastQuestionType?: true;
 };
 export type AiSessionMaxAggregateInputType = {
     id?: true;
     userId?: true;
     createdAt?: true;
+    currentIntent?: true;
+    status?: true;
+    lastQuestionType?: true;
 };
 export type AiSessionCountAggregateInputType = {
     id?: true;
     userId?: true;
     createdAt?: true;
+    currentIntent?: true;
+    status?: true;
+    lastQuestionType?: true;
+    context?: true;
     _all?: true;
 };
 export type AiSessionAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -66,6 +86,10 @@ export type AiSessionGroupByOutputType = {
     id: string;
     userId: string;
     createdAt: Date;
+    currentIntent: string | null;
+    status: string;
+    lastQuestionType: string | null;
+    context: runtime.JsonValue | null;
     _count: AiSessionCountAggregateOutputType | null;
     _min: AiSessionMinAggregateOutputType | null;
     _max: AiSessionMaxAggregateOutputType | null;
@@ -80,6 +104,10 @@ export type AiSessionWhereInput = {
     id?: Prisma.UuidFilter<"AiSession"> | string;
     userId?: Prisma.UuidFilter<"AiSession"> | string;
     createdAt?: Prisma.DateTimeFilter<"AiSession"> | Date | string;
+    currentIntent?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    status?: Prisma.StringFilter<"AiSession"> | string;
+    lastQuestionType?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    context?: Prisma.JsonNullableFilter<"AiSession">;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     messages?: Prisma.AiMessageListRelationFilter;
 };
@@ -87,6 +115,10 @@ export type AiSessionOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+    currentIntent?: Prisma.SortOrderInput | Prisma.SortOrder;
+    status?: Prisma.SortOrder;
+    lastQuestionType?: Prisma.SortOrderInput | Prisma.SortOrder;
+    context?: Prisma.SortOrderInput | Prisma.SortOrder;
     user?: Prisma.UserOrderByWithRelationInput;
     messages?: Prisma.AiMessageOrderByRelationAggregateInput;
 };
@@ -97,6 +129,10 @@ export type AiSessionWhereUniqueInput = Prisma.AtLeast<{
     NOT?: Prisma.AiSessionWhereInput | Prisma.AiSessionWhereInput[];
     userId?: Prisma.UuidFilter<"AiSession"> | string;
     createdAt?: Prisma.DateTimeFilter<"AiSession"> | Date | string;
+    currentIntent?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    status?: Prisma.StringFilter<"AiSession"> | string;
+    lastQuestionType?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    context?: Prisma.JsonNullableFilter<"AiSession">;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     messages?: Prisma.AiMessageListRelationFilter;
 }, "id">;
@@ -104,6 +140,10 @@ export type AiSessionOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+    currentIntent?: Prisma.SortOrderInput | Prisma.SortOrder;
+    status?: Prisma.SortOrder;
+    lastQuestionType?: Prisma.SortOrderInput | Prisma.SortOrder;
+    context?: Prisma.SortOrderInput | Prisma.SortOrder;
     _count?: Prisma.AiSessionCountOrderByAggregateInput;
     _max?: Prisma.AiSessionMaxOrderByAggregateInput;
     _min?: Prisma.AiSessionMinOrderByAggregateInput;
@@ -115,10 +155,18 @@ export type AiSessionScalarWhereWithAggregatesInput = {
     id?: Prisma.UuidWithAggregatesFilter<"AiSession"> | string;
     userId?: Prisma.UuidWithAggregatesFilter<"AiSession"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"AiSession"> | Date | string;
+    currentIntent?: Prisma.StringNullableWithAggregatesFilter<"AiSession"> | string | null;
+    status?: Prisma.StringWithAggregatesFilter<"AiSession"> | string;
+    lastQuestionType?: Prisma.StringNullableWithAggregatesFilter<"AiSession"> | string | null;
+    context?: Prisma.JsonNullableWithAggregatesFilter<"AiSession">;
 };
 export type AiSessionCreateInput = {
     id?: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     user: Prisma.UserCreateNestedOneWithoutAiSessionsInput;
     messages?: Prisma.AiMessageCreateNestedManyWithoutSessionInput;
 };
@@ -126,11 +174,19 @@ export type AiSessionUncheckedCreateInput = {
     id?: string;
     userId: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageUncheckedCreateNestedManyWithoutSessionInput;
 };
 export type AiSessionUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     user?: Prisma.UserUpdateOneRequiredWithoutAiSessionsNestedInput;
     messages?: Prisma.AiMessageUpdateManyWithoutSessionNestedInput;
 };
@@ -138,21 +194,37 @@ export type AiSessionUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageUncheckedUpdateManyWithoutSessionNestedInput;
 };
 export type AiSessionCreateManyInput = {
     id?: string;
     userId: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionListRelationFilter = {
     every?: Prisma.AiSessionWhereInput;
@@ -166,16 +238,26 @@ export type AiSessionCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+    currentIntent?: Prisma.SortOrder;
+    status?: Prisma.SortOrder;
+    lastQuestionType?: Prisma.SortOrder;
+    context?: Prisma.SortOrder;
 };
 export type AiSessionMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+    currentIntent?: Prisma.SortOrder;
+    status?: Prisma.SortOrder;
+    lastQuestionType?: Prisma.SortOrder;
 };
 export type AiSessionMinOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+    currentIntent?: Prisma.SortOrder;
+    status?: Prisma.SortOrder;
+    lastQuestionType?: Prisma.SortOrder;
 };
 export type AiSessionScalarRelationFilter = {
     is?: Prisma.AiSessionWhereInput;
@@ -234,11 +316,19 @@ export type AiSessionUpdateOneRequiredWithoutMessagesNestedInput = {
 export type AiSessionCreateWithoutUserInput = {
     id?: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageCreateNestedManyWithoutSessionInput;
 };
 export type AiSessionUncheckedCreateWithoutUserInput = {
     id?: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageUncheckedCreateNestedManyWithoutSessionInput;
 };
 export type AiSessionCreateOrConnectWithoutUserInput = {
@@ -269,16 +359,28 @@ export type AiSessionScalarWhereInput = {
     id?: Prisma.UuidFilter<"AiSession"> | string;
     userId?: Prisma.UuidFilter<"AiSession"> | string;
     createdAt?: Prisma.DateTimeFilter<"AiSession"> | Date | string;
+    currentIntent?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    status?: Prisma.StringFilter<"AiSession"> | string;
+    lastQuestionType?: Prisma.StringNullableFilter<"AiSession"> | string | null;
+    context?: Prisma.JsonNullableFilter<"AiSession">;
 };
 export type AiSessionCreateWithoutMessagesInput = {
     id?: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     user: Prisma.UserCreateNestedOneWithoutAiSessionsInput;
 };
 export type AiSessionUncheckedCreateWithoutMessagesInput = {
     id?: string;
     userId: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionCreateOrConnectWithoutMessagesInput = {
     where: Prisma.AiSessionWhereUniqueInput;
@@ -296,30 +398,54 @@ export type AiSessionUpdateToOneWithWhereWithoutMessagesInput = {
 export type AiSessionUpdateWithoutMessagesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     user?: Prisma.UserUpdateOneRequiredWithoutAiSessionsNestedInput;
 };
 export type AiSessionUncheckedUpdateWithoutMessagesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionCreateManyUserInput = {
     id?: string;
     createdAt?: Date | string;
+    currentIntent?: string | null;
+    status?: string;
+    lastQuestionType?: string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionUpdateWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageUpdateManyWithoutSessionNestedInput;
 };
 export type AiSessionUncheckedUpdateWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
     messages?: Prisma.AiMessageUncheckedUpdateManyWithoutSessionNestedInput;
 };
 export type AiSessionUncheckedUpdateManyWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    currentIntent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    lastQuestionType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    context?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
 };
 export type AiSessionCountOutputType = {
     messages: number;
@@ -337,6 +463,10 @@ export type AiSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
     id?: boolean;
     userId?: boolean;
     createdAt?: boolean;
+    currentIntent?: boolean;
+    status?: boolean;
+    lastQuestionType?: boolean;
+    context?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     messages?: boolean | Prisma.AiSession$messagesArgs<ExtArgs>;
     _count?: boolean | Prisma.AiSessionCountOutputTypeDefaultArgs<ExtArgs>;
@@ -345,20 +475,32 @@ export type AiSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
     id?: boolean;
     userId?: boolean;
     createdAt?: boolean;
+    currentIntent?: boolean;
+    status?: boolean;
+    lastQuestionType?: boolean;
+    context?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["aiSession"]>;
 export type AiSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     userId?: boolean;
     createdAt?: boolean;
+    currentIntent?: boolean;
+    status?: boolean;
+    lastQuestionType?: boolean;
+    context?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["aiSession"]>;
 export type AiSessionSelectScalar = {
     id?: boolean;
     userId?: boolean;
     createdAt?: boolean;
+    currentIntent?: boolean;
+    status?: boolean;
+    lastQuestionType?: boolean;
+    context?: boolean;
 };
-export type AiSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "createdAt", ExtArgs["result"]["aiSession"]>;
+export type AiSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "createdAt" | "currentIntent" | "status" | "lastQuestionType" | "context", ExtArgs["result"]["aiSession"]>;
 export type AiSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     messages?: boolean | Prisma.AiSession$messagesArgs<ExtArgs>;
@@ -380,6 +522,10 @@ export type $AiSessionPayload<ExtArgs extends runtime.Types.Extensions.InternalA
         id: string;
         userId: string;
         createdAt: Date;
+        currentIntent: string | null;
+        status: string;
+        lastQuestionType: string | null;
+        context: runtime.JsonValue | null;
     }, ExtArgs["result"]["aiSession"]>;
     composites: {};
 };
@@ -442,6 +588,10 @@ export interface AiSessionFieldRefs {
     readonly id: Prisma.FieldRef<"AiSession", 'String'>;
     readonly userId: Prisma.FieldRef<"AiSession", 'String'>;
     readonly createdAt: Prisma.FieldRef<"AiSession", 'DateTime'>;
+    readonly currentIntent: Prisma.FieldRef<"AiSession", 'String'>;
+    readonly status: Prisma.FieldRef<"AiSession", 'String'>;
+    readonly lastQuestionType: Prisma.FieldRef<"AiSession", 'String'>;
+    readonly context: Prisma.FieldRef<"AiSession", 'Json'>;
 }
 export type AiSessionFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.AiSessionSelect<ExtArgs> | null;

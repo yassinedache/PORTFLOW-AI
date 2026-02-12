@@ -1,7 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Sparkles, User, Loader2 } from 'lucide-react';
+import {
+  Bot,
+  Send,
+  Sparkles,
+  User,
+  Loader2,
+  MessageSquarePlus,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { PageTransition } from '@/components/shared';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,10 +28,19 @@ const SUGGESTED_PROMPTS = [
   'Which of my containers are ready?',
 ];
 
+/** Threshold in pixels to consider "near bottom" */
+const SCROLL_THRESHOLD = 100;
+
+/** Patterns to detect "new chat" or "reset" commands */
+const NEW_CHAT_PATTERNS =
+  /^(new\s*chat|start\s*new\s*chat|reset\s*chat|reset|start\s*over)$/i;
+
 export default function AssistantPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState('');
+  const [autoScroll, setAutoScroll] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(() => {
     // Restore session ID from sessionStorage so refresh keeps the conversation
     return sessionStorage.getItem('portflow-ai-session');
@@ -38,6 +54,31 @@ export default function AssistantPage() {
       setSessionId(session.id);
       sessionStorage.setItem('portflow-ai-session', session.id);
     },
+  });
+
+  // Start a new chat (clear history, reset context)
+  const newChat = useMutation({
+    mutationFn: assistantApi.newChat,
+    onMutate: () => {
+      // Immediately clear UI for responsiveness
+      setMessages([]);
+      setInput('');
+    },
+    onSuccess: (response) => {
+      setSessionId(response.sessionId);
+      sessionStorage.setItem('portflow-ai-session', response.sessionId);
+      // Add the greeting message
+      setMessages([
+        {
+          role: 'assistant' as const,
+          content: response.greeting,
+        } as unknown as AiMessage,
+      ]);
+      setAutoScroll(true);
+      inputRef.current?.focus();
+      toast.success('New chat started');
+    },
+    onError: () => toast.error('Failed to start new chat'),
   });
 
   // Load history when session exists
@@ -90,43 +131,95 @@ export default function AssistantPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll
+  // Check if user is near the bottom of the scroll area
+  const isNearBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
+  }, []);
+
+  // Handle scroll to track if user has scrolled up
+  const handleScroll = useCallback(() => {
+    setAutoScroll(isNearBottom());
+  }, [isNearBottom]);
+
+  // Auto-scroll: only scroll if user is near bottom or just sent a message
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [messages, sendMessage.isPending]);
+    if (autoScroll) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, sendMessage.isPending, autoScroll]);
+
+  // Scroll to bottom on initial load when history is loaded
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Small delay to ensure DOM is rendered
+      setTimeout(() => {
+        endRef.current?.scrollIntoView({ behavior: 'auto' });
+        setAutoScroll(true);
+      }, 50);
+    }
+  }, [sessionId]); // Only on session change (initial load)
 
   const handleSend = (text?: string) => {
     const msg = (text ?? input).trim();
-    if (!msg || sendMessage.isPending) return;
+    if (!msg || sendMessage.isPending || newChat.isPending) return;
+
+    // Check for "new chat" command
+    if (NEW_CHAT_PATTERNS.test(msg)) {
+      setInput('');
+      newChat.mutate();
+      return;
+    }
+
     setMessages((prev) => [
       ...prev,
       { role: 'user' as const, content: msg } as unknown as AiMessage,
     ]);
     setInput('');
+    setAutoScroll(true); // Always scroll when user sends a message
     sendMessage.mutate(msg);
     inputRef.current?.focus();
+  };
+
+  const handleNewChat = () => {
+    if (newChat.isPending) return;
+    newChat.mutate();
   };
 
   return (
     <PageTransition>
       <div className="flex flex-col h-[calc(100vh-7rem)]">
         {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-cyan-400" />
-            AI Assistant
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Ask about bookings, slots, risk predictions, and more
-          </p>
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-cyan-400" />
+              AI Assistant
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Ask about bookings, slots, risk predictions, and more
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNewChat}
+            disabled={newChat.isPending}
+            className="gap-2"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            New Chat
+          </Button>
         </div>
 
         {/* Chat Area */}
         <Card className="flex-1 flex flex-col overflow-hidden">
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <ScrollArea
+            className="flex-1 p-4"
+            ref={scrollRef}
+            onScroll={handleScroll}
+          >
             <div className="space-y-4 max-w-2xl mx-auto">
               {/* Welcome */}
               {messages.length === 0 && !sendMessage.isPending && (
@@ -228,6 +321,9 @@ export default function AssistantPage() {
                   </div>
                 </motion.div>
               )}
+
+              {/* Scroll anchor */}
+              <div ref={endRef} />
             </div>
           </ScrollArea>
 

@@ -17,14 +17,14 @@ export declare class NotificationService {
             status: import("../../generated/prisma/enums.js").BookingStatus;
         } | null;
     } & {
-        id: string;
         type: string;
         title: string;
-        message: string;
-        read: boolean;
+        id: string;
         createdAt: Date;
         userId: string;
         bookingId: string | null;
+        message: string;
+        read: boolean;
     }>;
     getForUser(userId: string, params: {
         page?: number;
@@ -37,14 +37,14 @@ export declare class NotificationService {
                 status: import("../../generated/prisma/enums.js").BookingStatus;
             } | null;
         } & {
-            id: string;
             type: string;
             title: string;
-            message: string;
-            read: boolean;
+            id: string;
             createdAt: Date;
             userId: string;
             bookingId: string | null;
+            message: string;
+            read: boolean;
         })[];
         unreadCount: number;
         pagination: {
@@ -84,14 +84,14 @@ export declare class NotificationService {
             status: import("../../generated/prisma/enums.js").BookingStatus;
         } | null;
     } & {
-        id: string;
         type: string;
         title: string;
-        message: string;
-        read: boolean;
+        id: string;
         createdAt: Date;
         userId: string;
         bookingId: string | null;
+        message: string;
+        read: boolean;
     }>;
     notifyCarrierOfRejection(booking: {
         id: string;
@@ -108,14 +108,14 @@ export declare class NotificationService {
             status: import("../../generated/prisma/enums.js").BookingStatus;
         } | null;
     } & {
-        id: string;
         type: string;
         title: string;
-        message: string;
-        read: boolean;
+        id: string;
         createdAt: Date;
         userId: string;
         bookingId: string | null;
+        message: string;
+        read: boolean;
     }>;
     notifyCarrierOfPenalty(booking: {
         id: string;
@@ -126,13 +126,13 @@ export declare class NotificationService {
             status: import("../../generated/prisma/enums.js").BookingStatus;
         } | null;
     } & {
-        id: string;
         type: string;
         title: string;
-        message: string;
-        read: boolean;
+        id: string;
         createdAt: Date;
         userId: string;
         bookingId: string | null;
+        message: string;
+        read: boolean;
     }>;
 }

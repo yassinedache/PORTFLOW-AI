@@ -37,6 +37,9 @@ const OperatorDashboard = lazy(
 const PendingBookingsPage = lazy(
   () => import('@/features/operator/PendingBookingsPage'),
 );
+const ConfirmedBookingsPage = lazy(
+  () => import('@/features/operator/ConfirmedBookingsPage'),
+);
 const OperatorBookingDetail = lazy(
   () => import('@/features/operator/BookingDetailPage'),
 );
@@ -233,6 +236,14 @@ export function AppRouter() {
             element={
               <RequireRole roles={[Role.TERMINAL_OPERATOR]}>
                 <PendingBookingsPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="operator/bookings/confirmed"
+            element={
+              <RequireRole roles={[Role.TERMINAL_OPERATOR]}>
+                <ConfirmedBookingsPage />
               </RequireRole>
             }
           />

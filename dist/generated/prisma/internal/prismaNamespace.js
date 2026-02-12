@@ -194,7 +194,11 @@ export const OcrJobScalarFieldEnum = {
 export const AiSessionScalarFieldEnum = {
     id: 'id',
     userId: 'userId',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    currentIntent: 'currentIntent',
+    status: 'status',
+    lastQuestionType: 'lastQuestionType',
+    context: 'context'
 };
 export const AiMessageScalarFieldEnum = {
     id: 'id',

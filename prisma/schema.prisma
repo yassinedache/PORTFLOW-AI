@@ -334,6 +334,12 @@ model AiSession {
   user      User        @relation(fields: [userId], references: [id])
   createdAt DateTime    @default(now())
 
+  // Conversation state machine for multi-turn flows
+  currentIntent     String?   @map("current_intent")      // e.g., BOOK_SLOT, CANCEL_BOOKING
+  status            String    @default("IDLE")             // IDLE, SUGGESTED_SLOTS_SHOWN, AWAITING_CONFIRMATION, etc.
+  lastQuestionType  String?   @map("last_question_type")  // e.g., CONFIRM_BOOK_SLOT, SELECT_SLOT
+  context           Json?                                  // Slot candidates, filled slots, etc.
+
   messages AiMessage[]
 
   @@map("ai_sessions")

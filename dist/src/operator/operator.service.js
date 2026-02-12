@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var OperatorService_1;
-import { Injectable, NotFoundException, BadRequestException, } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BlockchainService } from '../blockchain/blockchain.service.js';
 import { EventsGateway } from '../events/events.gateway.js';
@@ -132,16 +132,43 @@ let OperatorService = class OperatorService {
     async confirmReadiness(bookingId, userId) {
         const booking = await this.prisma.booking.findUnique({
             where: { id: bookingId },
-            include: { container: true },
+            include: { container: true, timeSlot: true, truck: true },
         });
         if (!booking)
             throw new NotFoundException('Booking not found');
+        if (booking.status === 'READY_TO_GO') {
+            throw new ConflictException({
+                errorCode: 'ALREADY_CONFIRMED',
+                message: 'Readiness has already been confirmed for this booking',
+            });
+        }
         if (booking.status !== 'CONFIRMED') {
-            throw new BadRequestException(`Cannot confirm readiness for booking with status: ${booking.status}. Must be CONFIRMED.`);
+            throw new BadRequestException({
+                errorCode: 'INVALID_STATUS',
+                message: `Cannot confirm readiness for booking with status: ${booking.status}. Must be CONFIRMED.`,
+            });
         }
-        if (booking.container && booking.container.status !== 'READY') {
-            throw new BadRequestException(`Container status is ${booking.container.status}, expected READY`);
+        if (booking.timeSlot && new Date() > booking.timeSlot.endTime) {
+            throw new BadRequestException({
+                errorCode: 'SLOT_EXPIRED',
+                message: 'Time slot has expired. Cannot confirm readiness for a past slot.',
+            });
         }
+        if (!booking.container) {
+            throw new BadRequestException({
+                errorCode: 'MISSING_CONTAINER',
+                message: 'Container must be assigned before confirming readiness',
+            });
+        }
+        if (booking.container.status !== 'READY') {
+            throw new BadRequestException({
+                errorCode: 'CONTAINER_NOT_READY',
+                message: `Container status is "${booking.container.status}", expected "READY". Update container status first.`,
+            });
+        }
+        const truckWarning = !booking.truckId
+            ? 'Truck is not assigned — gate access will require a truck.'
+            : null;
         const blockchainHash = await this.blockchainService.hashBooking({
             bookingId: booking.id,
             carrierId: booking.carrierId,
@@ -160,6 +187,7 @@ let OperatorService = class OperatorService {
                 timeSlot: { select: { startTime: true, endTime: true } },
             },
         });
+        const confirmedAt = new Date().toISOString();
         await this.prisma.readinessProof.create({
             data: {
                 bookingId,
@@ -179,7 +207,12 @@ let OperatorService = class OperatorService {
             terminal: updated.terminal?.name,
             slot: updated.timeSlot,
         });
-        return updated;
+        return {
+            ...updated,
+            readinessStatus: 'CONFIRMED',
+            confirmedAt,
+            ...(truckWarning ? { warning: truckWarning } : {}),
+        };
     }
 };
 OperatorService = OperatorService_1 = __decorate([

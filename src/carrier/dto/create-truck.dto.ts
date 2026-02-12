@@ -18,13 +18,12 @@ export class CreateTruckDto {
 
 export class CreateContainerDto {
   @ApiProperty({
-    description: 'Container number (ISO 6346)',
+    description: 'Container number',
     example: 'MSKU1234567',
   })
   @IsString()
-  @Matches(/^[A-Z]{4}\d{7}$/i, {
-    message:
-      'Container number must follow ISO 6346 format (4 letters + 7 digits)',
+  @Matches(/^[A-Z0-9]{3,15}$/i, {
+    message: 'Container number must be 3-15 alphanumeric characters',
   })
   containerNumber: string;
 }

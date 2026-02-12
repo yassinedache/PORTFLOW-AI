@@ -24,6 +24,9 @@ let AiController = class AiController {
     createSession(user) {
         return this.aiService.createSession(user);
     }
+    newChat(user) {
+        return this.aiService.startNewChat(user);
+    }
     query(dto, user) {
         return this.aiService.query(dto, user);
     }
@@ -48,6 +51,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AiController.prototype, "createSession", null);
+__decorate([
+    Post('chat/new'),
+    ApiOperation({
+        summary: 'Start a new empty chat',
+        description: 'Creates a fresh conversation with no previous messages, intent, or context. Returns the new session ID and a greeting message.',
+    }),
+    __param(0, CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "newChat", null);
 __decorate([
     Post('query'),
     ApiOperation({ summary: 'Send a query to the AI assistant' }),

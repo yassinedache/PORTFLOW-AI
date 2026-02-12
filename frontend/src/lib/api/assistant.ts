@@ -6,9 +6,23 @@ import type {
   AiQueryResponse,
 } from '@/types';
 
+export interface NewChatResponse {
+  sessionId: string;
+  status: string;
+  greeting: string;
+}
+
 export const assistantApi = {
   createSession: async (): Promise<AiSession> => {
     const res = await apiClient.post('/ai/sessions');
+    return res.data;
+  },
+
+  /**
+   * Start a new empty chat - clears history and context
+   */
+  newChat: async (): Promise<NewChatResponse> => {
+    const res = await apiClient.post('/ai/chat/new');
     return res.data;
   },
 

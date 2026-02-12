@@ -13,6 +13,111 @@ import { RequestUser } from '../common/interfaces/jwt-payload.interface.js';
 import { AiQueryDto } from './dto/ai.dto.js';
 import { AI_TOOLS, toOpenAiTools } from './ai-tools.js';
 import { EventsGateway } from '../events/events.gateway.js';
+import { CarrierService } from '../carrier/carrier.service.js';
+
+// ─── Conversation State Machine Types ──────────────────────────────────────
+
+/** Conversation status values for the state machine */
+export enum ConversationStatus {
+  IDLE = 'IDLE',
+  SUGGESTED_SLOTS_SHOWN = 'SUGGESTED_SLOTS_SHOWN',
+  AWAITING_CONFIRMATION = 'AWAITING_CONFIRMATION',
+  AWAITING_SLOT_SELECTION = 'AWAITING_SLOT_SELECTION',
+  AWAITING_INFO = 'AWAITING_INFO', // Waiting for terminal/date/time/etc.
+  BOOKING_IN_PROGRESS = 'BOOKING_IN_PROGRESS',
+  // Container step states
+  AWAITING_CONTAINER = 'AWAITING_CONTAINER',
+  CONTAINER_LIST_SHOWN = 'CONTAINER_LIST_SHOWN',
+  CONTAINER_SELECTED = 'CONTAINER_SELECTED',
+  // Final states
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED',
+}
+
+/** Intent types for the booking flow */
+export enum ConversationIntent {
+  NONE = 'NONE',
+  BOOK_SLOT = 'BOOK_SLOT',
+  CANCEL_BOOKING = 'CANCEL_BOOKING',
+  RESCHEDULE_BOOKING = 'RESCHEDULE_BOOKING',
+  TRACK_CONTAINER = 'TRACK_CONTAINER',
+  VIEW_BOOKINGS = 'VIEW_BOOKINGS',
+  CHECK_AVAILABILITY = 'CHECK_AVAILABILITY',
+}
+
+/** Question types for tracking what we're waiting for */
+export enum QuestionType {
+  NONE = 'NONE',
+  CONFIRM_BOOK_SLOT = 'CONFIRM_BOOK_SLOT',
+  SELECT_SLOT = 'SELECT_SLOT',
+  PROVIDE_TERMINAL = 'PROVIDE_TERMINAL',
+  PROVIDE_DATE = 'PROVIDE_DATE',
+  PROVIDE_TIME = 'PROVIDE_TIME',
+  PROVIDE_CONTAINER = 'PROVIDE_CONTAINER',
+  SELECT_CONTAINER = 'SELECT_CONTAINER', // For selecting from list
+  PROVIDE_BOOKING_ID = 'PROVIDE_BOOKING_ID',
+  CONFIRM_CANCEL = 'CONFIRM_CANCEL',
+}
+
+/** Slot candidate for display/selection */
+export interface SlotCandidate {
+  slotId: string;
+  terminal: string;
+  terminalId: string;
+  start: string;
+  end: string;
+  capacity: string;
+  date: string;
+}
+
+/** Container candidate for display/selection */
+export interface ContainerCandidate {
+  id: string;
+  containerNumber: string;
+  size: string;
+  status: string;
+}
+
+/** Conversation context stored in DB */
+export interface ConversationContext {
+  slotCandidates?: SlotCandidate[];
+  suggestedSlotId?: string;
+  selectedSlotIndex?: number;
+  terminal?: string;
+  date?: string;
+  time?: string;
+  containerNumber?: string;
+  truckPlate?: string;
+  bookingId?: string;
+  // Container selection
+  containerCandidates?: ContainerCandidate[];
+  selectedContainerId?: string;
+  // Booking draft
+  bookingDraft?: {
+    slotId?: string;
+    terminalId?: string;
+    timeSlotId?: string;
+    containerNumber?: string;
+    truckPlate?: string;
+  };
+  // Anti-loop tracking
+  lastPromptType?: string;
+  lastPromptTimestamp?: number;
+}
+
+/** Full conversation state */
+export interface ConversationState {
+  currentIntent: ConversationIntent;
+  status: ConversationStatus;
+  lastQuestionType: QuestionType;
+  context: ConversationContext;
+}
+
+/** Yes/No patterns for deterministic handling */
+const YES_PATTERNS =
+  /^(yes|y|ok|okay|sure|yep|yeah|sounds?\s*good|go\s*ahead|confirm|do\s*it|book\s*it|absolutely|definitely|please)$/i;
+const NO_PATTERNS =
+  /^(no|n|nope|nah|cancel|not?\s*now|never\s*mind|stop|don'?t|forget\s*it)$/i;
 
 /**
  * AI Assistant Service — LLM-powered Orchestrator with Tool Calling
@@ -38,6 +143,7 @@ export class AiService {
     private readonly slotsService: SlotsService,
     private readonly bookingService: BookingService,
     private readonly eventsGateway: EventsGateway,
+    private readonly carrierService: CarrierService,
   ) {
     this.aiProvider = this.configService.get<string>(
       'AI_PROVIDER',
@@ -66,6 +172,50 @@ export class AiService {
     });
   }
 
+  /**
+   * Start a new empty chat - creates a fresh conversation with no previous
+   * messages, intent, or context. Returns the new session ID and greeting.
+   */
+  async startNewChat(user: RequestUser) {
+    // Create a new session with clean state
+    const initialState: ConversationState = {
+      currentIntent: ConversationIntent.NONE,
+      status: ConversationStatus.IDLE,
+      lastQuestionType: QuestionType.NONE,
+      context: {},
+    };
+
+    const session = await this.prisma.aiSession.create({
+      data: {
+        userId: user.id,
+        currentIntent: initialState.currentIntent,
+        status: initialState.status,
+        lastQuestionType: initialState.lastQuestionType,
+        context: initialState.context as any,
+      },
+    });
+
+    // Add the greeting message
+    const greeting = 'Hi 👋 How can I help you today?';
+    await this.prisma.aiMessage.create({
+      data: {
+        sessionId: session.id,
+        role: 'ASSISTANT',
+        content: greeting,
+      },
+    });
+
+    this.logger.log(
+      `[NEW CHAT] Created session ${session.id} for user ${user.id}`,
+    );
+
+    return {
+      sessionId: session.id,
+      status: 'IDLE',
+      greeting,
+    };
+  }
+
   async query(dto: AiQueryDto, user: RequestUser) {
     // Verify session belongs to user
     const session = await this.prisma.aiSession.findUnique({
@@ -75,6 +225,12 @@ export class AiService {
     if (session.userId !== user.id) {
       throw new ForbiddenException('Session does not belong to user');
     }
+
+    // Load conversation state
+    const state = this.loadConversationState(session);
+    this.logger.log(
+      `[STATE] status=${state.status} intent=${state.currentIntent} lastQ=${state.lastQuestionType}`,
+    );
 
     // Save user message
     await this.prisma.aiMessage.create({
@@ -92,17 +248,95 @@ export class AiService {
       take: 20, // Last 20 messages for context window
     });
 
-    // Process via LLM or rule-based fallback
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRE-PROCESSOR 1: Container Step Resolver (runs if AWAITING_CONTAINER)
+    // ─────────────────────────────────────────────────────────────────────────
+    const containerResult = await this.runContainerStepResolver(
+      dto.message,
+      state,
+      user,
+    );
+    if (containerResult) {
+      this.logger.log(`[CONTAINER RESOLVER] Handled deterministically`);
+
+      // Update state in DB
+      await this.updateSessionState(dto.sessionId, containerResult.newState);
+
+      // Save assistant response
+      await this.prisma.aiMessage.create({
+        data: {
+          sessionId: dto.sessionId,
+          role: 'ASSISTANT',
+          content: containerResult.response,
+        },
+      });
+
+      return {
+        sessionId: dto.sessionId,
+        response: containerResult.response,
+        state: containerResult.newState,
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRE-PROCESSOR 2: Yes/No Resolver (runs BEFORE LLM if awaiting confirmation)
+    // ─────────────────────────────────────────────────────────────────────────
+    const yesNoResult = await this.runYesNoResolver(dto.message, state, user);
+    if (yesNoResult) {
+      this.logger.log(`[YES/NO RESOLVER] Handled deterministically`);
+
+      // Update state in DB
+      await this.updateSessionState(dto.sessionId, yesNoResult.newState);
+
+      // Save assistant response
+      await this.prisma.aiMessage.create({
+        data: {
+          sessionId: dto.sessionId,
+          role: 'ASSISTANT',
+          content: yesNoResult.response,
+        },
+      });
+
+      return {
+        sessionId: dto.sessionId,
+        response: yesNoResult.response,
+        state: yesNoResult.newState,
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MAIN PROCESSOR: LLM or Rule-based
+    // ─────────────────────────────────────────────────────────────────────────
     let response: string;
+    let newState = state;
+
     if (
       this.aiApiKey &&
       this.aiApiKey !== 'your-openai-api-key' &&
+      this.aiApiKey !== 'your-api-key' &&
       process.env.NODE_ENV !== 'test'
     ) {
-      response = await this.processWithLlm(history, dto.message, user);
+      const result = await this.processWithLlmStateful(
+        history,
+        dto.message,
+        user,
+        state,
+      );
+      response = result.response;
+      newState = result.newState;
     } else {
-      response = await this.processWithRules(dto.message, user);
+      const result = await this.processWithRulesStateful(
+        dto.message,
+        user,
+        history,
+        state,
+      );
+      response = result.response;
+      newState = result.newState;
     }
+
+    // Update state in DB
+    await this.updateSessionState(dto.sessionId, newState);
 
     // Save assistant response
     await this.prisma.aiMessage.create({
@@ -116,6 +350,612 @@ export class AiService {
     return {
       sessionId: dto.sessionId,
       response,
+      state: newState,
+    };
+  }
+
+  // ─── State Machine Helpers ─────────────────────────────────────────────────
+
+  /**
+   * Load conversation state from session
+   */
+  private loadConversationState(session: any): ConversationState {
+    return {
+      currentIntent:
+        (session.currentIntent as ConversationIntent) ||
+        ConversationIntent.NONE,
+      status: (session.status as ConversationStatus) || ConversationStatus.IDLE,
+      lastQuestionType:
+        (session.lastQuestionType as QuestionType) || QuestionType.NONE,
+      context: (session.context as ConversationContext) || {},
+    };
+  }
+
+  /**
+   * Update session state in database
+   */
+  private async updateSessionState(
+    sessionId: string,
+    state: ConversationState,
+  ): Promise<void> {
+    await this.prisma.aiSession.update({
+      where: { id: sessionId },
+      data: {
+        currentIntent: state.currentIntent,
+        status: state.status,
+        lastQuestionType: state.lastQuestionType,
+        context: state.context as any,
+      },
+    });
+  }
+
+  /**
+   * Reset state to IDLE
+   */
+  private resetState(): ConversationState {
+    return {
+      currentIntent: ConversationIntent.NONE,
+      status: ConversationStatus.IDLE,
+      lastQuestionType: QuestionType.NONE,
+      context: {},
+    };
+  }
+
+  // ─── Container Step Resolver (Pre-LLM Deterministic Handler) ────────────────
+
+  /** Patterns for container list request */
+  private readonly SHOW_CONTAINERS_PATTERNS =
+    /^(show|list|my|pick|choose|select|get|display|see)\s*(me\s+)?(my\s+)?(the\s+)?(containers?|container\s*list|available\s*containers?)$/i;
+
+  /** Pattern for container number input */
+  private readonly CONTAINER_NUMBER_PATTERN = /^[A-Z0-9]{3,15}$/i;
+
+  /**
+   * Handle container step deterministically BEFORE calling LLM.
+   * Handles: show containers, container number input, container selection by number
+   */
+  private async runContainerStepResolver(
+    message: string,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState } | null> {
+    const trimmedMsg = message.trim();
+    const lowerMsg = trimmedMsg.toLowerCase();
+
+    // Only run if we're in container-related states
+    const containerStatuses = [
+      ConversationStatus.AWAITING_CONTAINER,
+      ConversationStatus.CONTAINER_LIST_SHOWN,
+      ConversationStatus.BOOKING_IN_PROGRESS, // Also handle if we transitioned directly
+    ];
+
+    if (!containerStatuses.includes(state.status)) {
+      return null;
+    }
+
+    // ─── Handle "show me containers" request ───────────────────────────────
+    if (
+      this.SHOW_CONTAINERS_PATTERNS.test(trimmedMsg) ||
+      (lowerMsg.includes('show') && lowerMsg.includes('container')) ||
+      (lowerMsg.includes('list') && lowerMsg.includes('container')) ||
+      lowerMsg.includes('my container') ||
+      lowerMsg === 'containers'
+    ) {
+      return this.handleShowContainersRequest(state, user);
+    }
+
+    // ─── Handle container selection by number (1, 2, 3) ────────────────────
+    if (state.status === ConversationStatus.CONTAINER_LIST_SHOWN) {
+      const containerNumber = parseInt(trimmedMsg, 10);
+      if (
+        !isNaN(containerNumber) &&
+        state.context.containerCandidates &&
+        containerNumber >= 1 &&
+        containerNumber <= state.context.containerCandidates.length
+      ) {
+        return this.handleContainerSelection(containerNumber, state, user);
+      }
+    }
+
+    // ─── Handle direct container number input ──────────────────────────────
+    // Check if the message looks like a container number
+    const cleanedInput = trimmedMsg.replace(/[-\s]/g, '').toUpperCase();
+    if (this.CONTAINER_NUMBER_PATTERN.test(cleanedInput)) {
+      return this.handleContainerNumberInput(cleanedInput, state, user);
+    }
+
+    // ─── Anti-loop guard ───────────────────────────────────────────────────
+    // If we already asked for container and user says something else,
+    // don't repeat the same question blindly
+    if (
+      state.context.lastPromptType === 'PROVIDE_CONTAINER' &&
+      state.context.lastPromptTimestamp &&
+      Date.now() - state.context.lastPromptTimestamp < 60000 // Within 1 minute
+    ) {
+      // User said something but it's not a container - offer help
+      return {
+        response:
+          `I didn't recognize that as a container number.\n\n` +
+          `You can:\n` +
+          `• Type a container number (e.g., MSKU1234567 or ABC123)\n` +
+          `• Say "show my containers" to see your list\n` +
+          `• Say "cancel" to stop the booking`,
+        newState: {
+          ...state,
+          context: {
+            ...state.context,
+            lastPromptType: 'CONTAINER_HELP',
+            lastPromptTimestamp: Date.now(),
+          },
+        },
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle "show me containers" request
+   */
+  private async handleShowContainersRequest(
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    try {
+      // Fetch user's containers
+      const containers = await this.carrierService.getMyContainers(user.id);
+
+      if (!containers || containers.length === 0) {
+        return {
+          response:
+            `You don't have any containers registered in your account.\n\n` +
+            `You can:\n` +
+            `• Type a container number manually (e.g., MSKU1234567)\n` +
+            `• Register a container first in the Carrier section`,
+          newState: {
+            ...state,
+            context: {
+              ...state.context,
+              lastPromptType: 'NO_CONTAINERS',
+              lastPromptTimestamp: Date.now(),
+            },
+          },
+        };
+      }
+
+      // Build container candidates
+      const containerCandidates: ContainerCandidate[] = containers.map((c) => ({
+        id: c.id,
+        containerNumber: c.containerNumber,
+        size: 'Standard', // Container model doesn't have size field
+        status: c.status || 'available',
+      }));
+
+      // Build the response list
+      const containerList = containerCandidates
+        .map(
+          (c, i) =>
+            `${i + 1}. **${c.containerNumber}** (${c.size}) - ${c.status}`,
+        )
+        .join('\n');
+
+      const newState: ConversationState = {
+        ...state,
+        status: ConversationStatus.CONTAINER_LIST_SHOWN,
+        lastQuestionType: QuestionType.SELECT_CONTAINER,
+        context: {
+          ...state.context,
+          containerCandidates,
+          lastPromptType: 'CONTAINER_LIST',
+          lastPromptTimestamp: Date.now(),
+        },
+      };
+
+      return {
+        response:
+          `Here are your containers. Pick one:\n\n${containerList}\n\n` +
+          `Reply with the number or type the container number directly.`,
+        newState,
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching containers: ${error}`);
+      return {
+        response: `I couldn't fetch your containers right now. Please type your container number manually (e.g., MSKU1234567).`,
+        newState: state,
+      };
+    }
+  }
+
+  /**
+   * Handle container selection by number from list
+   */
+  private async handleContainerSelection(
+    selectionNumber: number,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    if (!state.context.containerCandidates) {
+      return {
+        response: `I don't have a container list. Please type your container number or say "show my containers".`,
+        newState: state,
+      };
+    }
+
+    const selectedContainer =
+      state.context.containerCandidates[selectionNumber - 1];
+    if (!selectedContainer) {
+      return {
+        response: `Please select a valid number (1-${state.context.containerCandidates.length}).`,
+        newState: state,
+      };
+    }
+
+    // Container selected - move to next step
+    return this.completeContainerSelection(
+      selectedContainer.containerNumber,
+      selectedContainer.id,
+      state,
+      user,
+    );
+  }
+
+  /**
+   * Handle direct container number input
+   */
+  private async handleContainerNumberInput(
+    containerNumber: string,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    // Try to validate the container
+    // First check if it's in the user's existing container list
+    let containerId: string | undefined;
+
+    try {
+      // Check if this container exists in user's account
+      const containers = await this.carrierService.getMyContainers(user.id);
+      const existingContainer = containers.find(
+        (c) =>
+          c.containerNumber.toUpperCase() === containerNumber.toUpperCase(),
+      );
+
+      if (existingContainer) {
+        containerId = existingContainer.id;
+      } else {
+        // Container not in user's account - check if it exists in DB at all
+        const dbContainer = await this.prisma.container.findUnique({
+          where: { containerNumber: containerNumber.toUpperCase() },
+        });
+
+        if (dbContainer) {
+          // Container exists but belongs to someone else or is unassigned
+          containerId = dbContainer.id;
+        }
+        // If not found anywhere, we'll still accept it (user may be typing a new one)
+      }
+    } catch (error) {
+      this.logger.warn(`Container lookup failed: ${error}`);
+    }
+
+    // Accept the container and move forward
+    return this.completeContainerSelection(
+      containerNumber,
+      containerId,
+      state,
+      user,
+    );
+  }
+
+  /**
+   * Complete the container selection and move to next step
+   */
+  private async completeContainerSelection(
+    containerNumber: string,
+    containerId: string | undefined,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const upperContainerNumber = containerNumber.toUpperCase();
+
+    // Check if container was already selected (anti-loop)
+    if (
+      state.context.containerNumber === upperContainerNumber ||
+      state.context.bookingDraft?.containerNumber === upperContainerNumber
+    ) {
+      return {
+        response:
+          `Container **${upperContainerNumber}** is already selected for this booking.\n\n` +
+          `Would you like to:\n` +
+          `• Confirm and complete the booking? (say "yes" or "confirm")\n` +
+          `• Choose a different container? (say "change container")\n` +
+          `• Cancel the booking? (say "cancel")`,
+        newState: {
+          ...state,
+          status: ConversationStatus.AWAITING_CONFIRMATION,
+          lastQuestionType: QuestionType.CONFIRM_BOOK_SLOT,
+        },
+      };
+    }
+
+    // Update state with selected container
+    const newState: ConversationState = {
+      ...state,
+      status: ConversationStatus.CONTAINER_SELECTED,
+      lastQuestionType: QuestionType.NONE,
+      context: {
+        ...state.context,
+        containerNumber: upperContainerNumber,
+        selectedContainerId: containerId,
+        bookingDraft: {
+          ...state.context.bookingDraft,
+          containerNumber: upperContainerNumber,
+        },
+        lastPromptType: 'CONTAINER_CONFIRMED',
+        lastPromptTimestamp: Date.now(),
+      },
+    };
+
+    // Get slot info for confirmation message
+    const slotInfo =
+      state.context.slotCandidates?.[state.context.selectedSlotIndex ?? 0];
+    const slotDescription = slotInfo
+      ? `${slotInfo.terminal}: ${slotInfo.start}-${slotInfo.end} on ${slotInfo.date}`
+      : 'your selected slot';
+
+    return {
+      response:
+        `Great! Container **${upperContainerNumber}** selected.\n\n` +
+        `📋 **Booking Summary:**\n` +
+        `• Slot: ${slotDescription}\n` +
+        `• Container: ${upperContainerNumber}\n\n` +
+        `Would you like to add a truck plate (optional)? Or say "confirm" to complete the booking.`,
+      newState: {
+        ...newState,
+        status: ConversationStatus.AWAITING_CONFIRMATION,
+        lastQuestionType: QuestionType.CONFIRM_BOOK_SLOT,
+      },
+    };
+  }
+
+  // ─── Yes/No Resolver (Pre-LLM Deterministic Handler) ───────────────────────
+
+  /**
+   * Handle yes/no responses deterministically BEFORE calling LLM.
+   * Returns null if the message is not a yes/no in a confirmation context.
+   */
+  private async runYesNoResolver(
+    message: string,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState } | null> {
+    const trimmedMsg = message.trim();
+
+    // Only run resolver if we're awaiting confirmation or slot selection
+    const confirmationStatuses = [
+      ConversationStatus.AWAITING_CONFIRMATION,
+      ConversationStatus.SUGGESTED_SLOTS_SHOWN,
+    ];
+
+    if (!confirmationStatuses.includes(state.status)) {
+      return null;
+    }
+
+    const isYes = YES_PATTERNS.test(trimmedMsg);
+    const isNo = NO_PATTERNS.test(trimmedMsg);
+
+    if (!isYes && !isNo) {
+      // Check if it's a slot selection number (1, 2, 3, etc.)
+      const slotNumber = parseInt(trimmedMsg, 10);
+      if (
+        !isNaN(slotNumber) &&
+        state.context.slotCandidates &&
+        slotNumber >= 1 &&
+        slotNumber <= state.context.slotCandidates.length
+      ) {
+        return this.handleSlotSelection(slotNumber, state, user);
+      }
+
+      // Not a yes/no or slot number - let LLM handle it
+      return null;
+    }
+
+    // Handle YES
+    if (isYes) {
+      return this.handleYesResponse(state, user);
+    }
+
+    // Handle NO
+    if (isNo) {
+      return this.handleNoResponse(state, user);
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle YES response based on current state
+   */
+  private async handleYesResponse(
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const newState = { ...state, context: { ...state.context } };
+
+    switch (state.lastQuestionType) {
+      case QuestionType.CONFIRM_BOOK_SLOT:
+        // User confirmed they want to book
+        if (
+          state.context.slotCandidates &&
+          state.context.slotCandidates.length > 0
+        ) {
+          if (state.context.slotCandidates.length === 1) {
+            // Only one slot - proceed directly
+            newState.status = ConversationStatus.BOOKING_IN_PROGRESS;
+            newState.lastQuestionType = QuestionType.NONE;
+            newState.context.suggestedSlotId =
+              state.context.slotCandidates[0].slotId;
+
+            const slot = state.context.slotCandidates[0];
+            return {
+              response:
+                `Great! 👍 I'll book ${slot.terminal} from ${slot.start} to ${slot.end} on ${slot.date}.\n\n` +
+                `Please provide your container number and truck plate (if applicable) to complete the booking.`,
+              newState,
+            };
+          } else {
+            // Multiple slots - ask which one
+            newState.status = ConversationStatus.AWAITING_SLOT_SELECTION;
+            newState.lastQuestionType = QuestionType.SELECT_SLOT;
+
+            const slotList = state.context.slotCandidates
+              .map(
+                (s, i) =>
+                  `${i + 1}. ${s.terminal}: ${s.start}-${s.end} (${s.capacity})`,
+              )
+              .join('\n');
+
+            return {
+              response: `Great! 👍 Which slot would you like to book? Reply with the number:\n\n${slotList}`,
+              newState,
+            };
+          }
+        }
+        break;
+
+      case QuestionType.SELECT_SLOT:
+        // User said yes but we need a slot number - prompt again
+        if (state.context.slotCandidates) {
+          const slotList = state.context.slotCandidates
+            .map((s, i) => `${i + 1}. ${s.terminal}: ${s.start}-${s.end}`)
+            .join('\n');
+          return {
+            response: `Please pick a slot number:\n\n${slotList}`,
+            newState: state,
+          };
+        }
+        break;
+
+      case QuestionType.CONFIRM_CANCEL:
+        // User confirmed cancellation
+        newState.status = ConversationStatus.COMPLETED;
+        newState.currentIntent = ConversationIntent.NONE;
+        return {
+          response: `Booking cancelled. Is there anything else I can help you with?`,
+          newState: this.resetState(),
+        };
+
+      default:
+        // Generic yes - try to continue the flow
+        if (state.status === ConversationStatus.SUGGESTED_SLOTS_SHOWN) {
+          return this.handleYesResponse(
+            { ...state, lastQuestionType: QuestionType.CONFIRM_BOOK_SLOT },
+            user,
+          );
+        }
+    }
+
+    // Default: acknowledge and continue
+    return {
+      response: `Okay! What would you like to do next?`,
+      newState: this.resetState(),
+    };
+  }
+
+  /**
+   * Handle NO response based on current state
+   */
+  private async handleNoResponse(
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const newState = { ...state, context: { ...state.context } };
+
+    switch (state.lastQuestionType) {
+      case QuestionType.CONFIRM_BOOK_SLOT:
+      case QuestionType.SELECT_SLOT:
+        // User doesn't want these slots
+        newState.status = ConversationStatus.IDLE;
+        newState.lastQuestionType = QuestionType.NONE;
+        newState.context.slotCandidates = undefined;
+
+        return {
+          response:
+            `No problem! Would you like me to show you:\n` +
+            `• Different time slots?\n` +
+            `• A different terminal?\n` +
+            `• A different date?\n\n` +
+            `Just let me know what you'd prefer.`,
+          newState,
+        };
+
+      case QuestionType.CONFIRM_CANCEL:
+        // User decided not to cancel
+        newState.status = ConversationStatus.IDLE;
+        newState.lastQuestionType = QuestionType.NONE;
+        return {
+          response: `Okay, I won't cancel it. Is there anything else you need?`,
+          newState,
+        };
+
+      default:
+        // Generic no - reset to idle
+        return {
+          response: `Alright, no worries. What would you like to do instead?`,
+          newState: this.resetState(),
+        };
+    }
+  }
+
+  /**
+   * Handle slot selection by number
+   */
+  private async handleSlotSelection(
+    slotNumber: number,
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    if (!state.context.slotCandidates) {
+      return {
+        response: `I don't have any slots to select from. Would you like me to show available slots?`,
+        newState: this.resetState(),
+      };
+    }
+
+    const selectedSlot = state.context.slotCandidates[slotNumber - 1];
+    if (!selectedSlot) {
+      return {
+        response: `Please select a valid slot number (1-${state.context.slotCandidates.length}).`,
+        newState: state,
+      };
+    }
+
+    // Transition to AWAITING_CONTAINER instead of BOOKING_IN_PROGRESS
+    const newState: ConversationState = {
+      ...state,
+      status: ConversationStatus.AWAITING_CONTAINER,
+      lastQuestionType: QuestionType.PROVIDE_CONTAINER,
+      context: {
+        ...state.context,
+        suggestedSlotId: selectedSlot.slotId,
+        selectedSlotIndex: slotNumber - 1,
+        bookingDraft: {
+          slotId: selectedSlot.slotId,
+          terminalId: selectedSlot.terminalId,
+          timeSlotId: selectedSlot.slotId,
+        },
+        lastPromptType: 'PROVIDE_CONTAINER',
+        lastPromptTimestamp: Date.now(),
+      },
+    };
+
+    return {
+      response:
+        `Perfect! You selected **${selectedSlot.terminal}**: ${selectedSlot.start}-${selectedSlot.end} on ${selectedSlot.date}.\n\n` +
+        `Now I need your container number to complete the booking.\n\n` +
+        `You can:\n` +
+        `• Type your container number (e.g., MSKU1234567)\n` +
+        `• Say "show my containers" to choose from your list`,
+      newState,
     };
   }
 
@@ -142,7 +982,7 @@ export class AiService {
     user: RequestUser,
   ): Promise<string> {
     try {
-      const systemPrompt = this.buildSystemPrompt(user);
+      const systemPrompt = this.buildSystemPrompt(user, history);
       const messages = [
         { role: 'system', content: systemPrompt },
         ...history.map((m) => ({
@@ -321,7 +1161,7 @@ export class AiService {
         return this.toolCheckAvailability(args.terminalId, args.date);
 
       case 'get_my_bookings':
-        return this.toolGetMyBookings(user);
+        return this.toolGetMyBookings(user, args.status);
 
       case 'get_port_status':
         return this.toolGetPortStatus();
@@ -346,6 +1186,25 @@ export class AiService {
       case 'cancel_booking':
         return this.toolCancelBooking(args.bookingId, user);
 
+      case 'get_operator_queue':
+        // Restrict to operators only
+        if (user.role !== 'TERMINAL_OPERATOR' && user.role !== 'PORT_ADMIN') {
+          return {
+            error:
+              'Access denied. This tool is for terminal operators only. Use get_my_bookings instead.',
+          };
+        }
+        return this.toolGetOperatorQueue(args.status);
+
+      case 'get_alerts':
+        // Restrict to operators only
+        if (user.role !== 'TERMINAL_OPERATOR' && user.role !== 'PORT_ADMIN') {
+          return {
+            error: 'Access denied. This tool is for terminal operators only.',
+          };
+        }
+        return this.toolGetAlerts();
+
       default:
         return { error: `Unknown tool: ${name}` };
     }
@@ -369,15 +1228,38 @@ export class AiService {
     };
   }
 
-  private async toolGetMyBookings(user: RequestUser) {
-    const bookings = await this.bookingService.findMyBookings(user.id);
-    return bookings.map((b) => ({
-      id: b.id,
-      terminal: b.terminal.name,
-      status: b.status,
-      startTime: b.timeSlot.startTime,
-      endTime: b.timeSlot.endTime,
-    }));
+  private async toolGetMyBookings(user: RequestUser, status?: string) {
+    const where: any = { carrierId: user.id };
+    if (status) {
+      where.status = status;
+    }
+
+    const bookings = await this.prisma.booking.findMany({
+      where,
+      include: {
+        terminal: { select: { name: true } },
+        timeSlot: { select: { startTime: true, endTime: true } },
+        container: { select: { containerNumber: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+    return {
+      bookings: bookings.map((b: any) => ({
+        id: b.id,
+        terminal: b.terminal?.name || 'N/A',
+        container: b.container?.containerNumber || 'N/A',
+        status: b.status,
+        startTime: b.timeSlot?.startTime,
+        endTime: b.timeSlot?.endTime,
+      })),
+      total: bookings.length,
+      summary: {
+        pending: bookings.filter((b) => b.status === 'PENDING').length,
+        confirmed: bookings.filter((b) => b.status === 'CONFIRMED').length,
+        atRisk: bookings.filter((b) => b.status === 'AT_RISK').length,
+      },
+    };
   }
 
   private async toolGetPortStatus() {
@@ -473,15 +1355,424 @@ export class AiService {
     }
   }
 
+  private async toolGetOperatorQueue(status?: string) {
+    try {
+      const where: any = {};
+      if (status) {
+        where.status = status;
+      }
+
+      const bookings = await this.prisma.booking.findMany({
+        where,
+        include: {
+          terminal: { select: { name: true } },
+          timeSlot: { select: { startTime: true, endTime: true } },
+          carrier: { select: { email: true } },
+          container: { select: { containerNumber: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      });
+
+      return {
+        bookings: bookings.map((b) => ({
+          id: b.id,
+          terminal: b.terminal.name,
+          carrier: b.carrier.email,
+          container: b.container?.containerNumber || 'N/A',
+          status: b.status,
+          startTime: b.timeSlot.startTime,
+          endTime: b.timeSlot.endTime,
+          createdAt: b.createdAt,
+        })),
+        total: bookings.length,
+        summary: {
+          pending: bookings.filter((b) => b.status === 'PENDING').length,
+          confirmed: bookings.filter((b) => b.status === 'CONFIRMED').length,
+          atRisk: bookings.filter((b) => b.status === 'AT_RISK').length,
+          readyToGo: bookings.filter((b) => b.status === 'READY_TO_GO').length,
+        },
+      };
+    } catch (error: any) {
+      return { error: error.message };
+    }
+  }
+
+  private async toolGetAlerts() {
+    try {
+      // Get recent at-risk bookings and other alert-worthy situations
+      const atRiskBookings = await this.prisma.booking.findMany({
+        where: { status: 'AT_RISK' },
+        include: {
+          terminal: { select: { name: true } },
+          carrier: { select: { email: true } },
+          timeSlot: { select: { startTime: true } },
+        },
+        take: 10,
+      });
+
+      const pendingCount = await this.prisma.booking.count({
+        where: { status: 'PENDING' },
+      });
+
+      const alerts: Array<{
+        type: string;
+        severity: string;
+        message: string;
+        bookings?: Array<{
+          id: string;
+          carrier: string;
+          terminal: string;
+          slotTime: Date;
+        }>;
+      }> = [];
+
+      if (atRiskBookings.length > 0) {
+        alerts.push({
+          type: 'AT_RISK',
+          severity: 'high',
+          message: `${atRiskBookings.length} booking(s) are at risk of missing their slots`,
+          bookings: atRiskBookings.map((b) => ({
+            id: b.id,
+            carrier: b.carrier.email,
+            terminal: b.terminal.name,
+            slotTime: b.timeSlot.startTime,
+          })),
+        });
+      }
+
+      if (pendingCount > 5) {
+        alerts.push({
+          type: 'QUEUE_BACKLOG',
+          severity: 'medium',
+          message: `${pendingCount} bookings are pending approval`,
+        });
+      }
+
+      return {
+        alerts,
+        summary: `${alerts.length} active alert(s)`,
+      };
+    } catch (error: any) {
+      return { error: error.message };
+    }
+  }
+
+  // ─── Stateful Processing Methods ─────────────────────────────────────────
+
+  /**
+   * Process with LLM, including conversation state in context
+   */
+  private async processWithLlmStateful(
+    history: Array<{ role: string; content: string }>,
+    message: string,
+    user: RequestUser,
+    state: ConversationState,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    // Build system prompt with state context
+    const systemPrompt = this.buildSystemPromptStateful(user, history, state);
+
+    try {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.map((m) => ({
+          role: m.role.toLowerCase() === 'user' ? 'user' : 'assistant',
+          content: m.content,
+        })),
+      ];
+
+      this.logger.log(
+        `[AI STATEFUL CALL] status=${state.status} intent=${state.currentIntent}`,
+      );
+
+      const response = await fetch(`${this.aiBaseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.aiApiKey}`,
+          'HTTP-Referer': 'https://portflow.ai',
+          'X-Title': 'PORTFLOW AI',
+        },
+        body: JSON.stringify({
+          model: this.aiModel,
+          messages,
+          tools: toOpenAiTools(),
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await this.processWithRulesStateful(
+          message,
+          user,
+          history,
+          state,
+        );
+        return result;
+      }
+
+      const data = await response.json();
+      const choice = data.choices?.[0];
+
+      if (!choice) {
+        return this.processWithRulesStateful(message, user, history, state);
+      }
+
+      // Handle tool calls with state
+      if (choice.message?.tool_calls?.length > 0) {
+        const toolResponse = await this.handleToolCallsStateful(
+          choice.message,
+          messages,
+          user,
+          state,
+        );
+        return toolResponse;
+      }
+
+      // Update state based on response content
+      const newState = this.inferStateFromResponse(
+        choice.message?.content || '',
+        state,
+      );
+
+      return {
+        response:
+          choice.message?.content || 'I apologize, I could not process that.',
+        newState,
+      };
+    } catch (error) {
+      this.logger.error(`[AI STATEFUL ERROR] ${error}`);
+      return this.processWithRulesStateful(message, user, history, state);
+    }
+  }
+
+  /**
+   * Handle tool calls with state tracking
+   */
+  private async handleToolCallsStateful(
+    assistantMessage: any,
+    messages: any[],
+    user: RequestUser,
+    state: ConversationState,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const response = await this.handleToolCalls(
+      assistantMessage,
+      messages,
+      user,
+    );
+
+    // Infer new state from tool results and response
+    const newState = this.inferStateFromResponse(response, state);
+
+    return { response, newState };
+  }
+
+  /**
+   * Infer conversation state from AI response
+   */
+  private inferStateFromResponse(
+    response: string,
+    currentState: ConversationState,
+  ): ConversationState {
+    const lowerResponse = response.toLowerCase();
+    const newState = { ...currentState, context: { ...currentState.context } };
+
+    // Detect if showing slots
+    if (
+      lowerResponse.includes('available slots') ||
+      lowerResponse.includes('here are the slots') ||
+      lowerResponse.includes('found these slots')
+    ) {
+      newState.status = ConversationStatus.SUGGESTED_SLOTS_SHOWN;
+      newState.currentIntent = ConversationIntent.BOOK_SLOT;
+
+      // Try to extract slot candidates from response
+      const slotCandidates = this.extractSlotsFromResponse(response);
+      if (slotCandidates.length > 0) {
+        newState.context.slotCandidates = slotCandidates;
+      }
+    }
+
+    // Detect confirmation questions
+    if (
+      lowerResponse.includes('would you like to book') ||
+      lowerResponse.includes('shall i book') ||
+      lowerResponse.includes('want me to book')
+    ) {
+      newState.status = ConversationStatus.AWAITING_CONFIRMATION;
+      newState.lastQuestionType = QuestionType.CONFIRM_BOOK_SLOT;
+    }
+
+    // Detect slot selection question
+    if (
+      lowerResponse.includes('which slot') ||
+      lowerResponse.includes('pick a slot') ||
+      lowerResponse.includes('select a slot') ||
+      lowerResponse.includes('reply with the number')
+    ) {
+      newState.status = ConversationStatus.AWAITING_SLOT_SELECTION;
+      newState.lastQuestionType = QuestionType.SELECT_SLOT;
+    }
+
+    // Detect booking in progress
+    if (
+      lowerResponse.includes('provide your container') ||
+      lowerResponse.includes('complete your booking') ||
+      lowerResponse.includes("i'll book")
+    ) {
+      newState.status = ConversationStatus.BOOKING_IN_PROGRESS;
+    }
+
+    // Detect completion
+    if (
+      lowerResponse.includes('booking confirmed') ||
+      lowerResponse.includes('successfully booked') ||
+      lowerResponse.includes('booking complete')
+    ) {
+      newState.status = ConversationStatus.COMPLETED;
+    }
+
+    // Detect cancellation
+    if (
+      lowerResponse.includes('cancelled') ||
+      lowerResponse.includes('canceled')
+    ) {
+      newState.status = ConversationStatus.CANCELED;
+    }
+
+    return newState;
+  }
+
+  /**
+   * Extract slot candidates from AI response text
+   */
+  private extractSlotsFromResponse(response: string): SlotCandidate[] {
+    const slots: SlotCandidate[] = [];
+
+    // Pattern: Terminal X: HH:MM-HH:MM or Terminal X HH:MM – HH:MM
+    const slotPattern =
+      /(?:(\d+)[.)\s]+)?(?:terminal\s*)?([A-Za-z0-9]+)[:\s]+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/gi;
+
+    let match;
+    while ((match = slotPattern.exec(response)) !== null) {
+      slots.push({
+        slotId: `slot-${slots.length + 1}`,
+        terminal: `Terminal ${match[2].toUpperCase()}`,
+        terminalId: match[2].toLowerCase(),
+        start: match[3],
+        end: match[4],
+        capacity: 'available',
+        date: new Date().toISOString().split('T')[0], // Default to today
+      });
+    }
+
+    return slots;
+  }
+
+  /**
+   * Build system prompt with state context for stateful processing
+   */
+  private buildSystemPromptStateful(
+    user: RequestUser,
+    history: Array<{ role: string; content: string }>,
+    state: ConversationState,
+  ): string {
+    const basePrompt = this.buildSystemPrompt(user, history);
+
+    const stateContext =
+      `\n\n─── CONVERSATION STATE (CRITICAL) ───\n` +
+      `Status: ${state.status}\n` +
+      `Intent: ${state.currentIntent}\n` +
+      `Last Question: ${state.lastQuestionType}\n` +
+      `Context: ${JSON.stringify(state.context)}\n\n` +
+      `IMPORTANT STATE RULES:\n` +
+      `- Current status is ${state.status}\n` +
+      (state.status !== ConversationStatus.IDLE
+        ? '- DO NOT show help menu or capability list - we are in the middle of a task!\n' +
+          '- Continue the current flow until completion or explicit cancellation\n'
+        : '') +
+      (state.lastQuestionType !== QuestionType.NONE
+        ? `- You asked a ${state.lastQuestionType} question - expect an answer to that\n`
+        : '');
+
+    return basePrompt + stateContext;
+  }
+
   // ─── Rule-Based Fallback Engine ──────────────────────────────────────────
 
   private async processWithRules(
     message: string,
     user: RequestUser,
+    history: Array<{ role: string; content: string }> = [],
   ): Promise<string> {
-    const lowerMsg = message.toLowerCase();
+    const lowerMsg = message.toLowerCase().trim();
+
+    // Get last assistant message to understand context
+    const lastAssistantMsg = [...history]
+      .reverse()
+      .find((m) => m.role === 'ASSISTANT');
+    const lastAssistantContent = lastAssistantMsg?.content?.toLowerCase() || '';
+
+    // Check if we're in the middle of a conversation flow
+    const isFollowUp = this.isShortAnswer(lowerMsg);
+    const hasOngoingTask = this.detectOngoingTask(lastAssistantContent);
 
     try {
+      // ─── Handle short answers in context ───────────────────────────────────
+      if (isFollowUp && lastAssistantContent) {
+        const contextResponse = await this.handleContextualResponse(
+          lowerMsg,
+          lastAssistantContent,
+          user,
+        );
+        if (contextResponse) {
+          return contextResponse;
+        }
+      }
+
+      // ─── Don't show menu if task is in progress ─────────────────────────────
+      if (
+        hasOngoingTask &&
+        !lowerMsg.includes('help') &&
+        !lowerMsg.includes('cancel')
+      ) {
+        // Extract entities from current message and continue task with accumulated context
+        const currentEntities = this.extractEntities(message);
+        const hasNewInfo = Object.values(currentEntities).some(
+          (v) => v !== undefined,
+        );
+
+        if (hasNewInfo || this.isShortAnswer(lowerMsg)) {
+          // User provided partial info - continue with slot filling
+          return await this.continueTaskFlowWithContext(history, message, user);
+        }
+
+        // User said something but no extractable info - try to understand intent
+        // NEVER fall back to help menu during slot filling
+        return await this.continueTaskFlowWithContext(history, message, user);
+      }
+
+      // Intent: Greetings - respond naturally (but not if there's an ongoing task)
+      if (
+        !hasOngoingTask &&
+        (/^(hey|hi|hello|yo|sup|greetings|good morning|good afternoon|good evening|howdy|hiya)\b/i.test(
+          lowerMsg,
+        ) ||
+          lowerMsg === 'hey' ||
+          lowerMsg === 'hi' ||
+          lowerMsg === 'hello')
+      ) {
+        const greetings = [
+          `Hey there! How can I help you today?`,
+          `Hello! What can I assist you with?`,
+          `Hi! How can I help you with your port operations?`,
+          `Hey! What would you like to know?`,
+        ];
+        return greetings[Math.floor(Math.random() * greetings.length)]!;
+      }
+
       // Intent: Check availability
       if (
         lowerMsg.includes('available') ||
@@ -492,13 +1783,33 @@ export class AiService {
         return await this.handleAvailabilityQuery(lowerMsg);
       }
 
-      // Intent: My bookings
+      // Intent: My bookings (for carriers)
       if (
         lowerMsg.includes('my booking') ||
         lowerMsg.includes('my reservation') ||
         lowerMsg.includes('my trips')
       ) {
         return await this.handleMyBookingsQuery(user);
+      }
+
+      // Intent: Operator queue / pending bookings
+      if (
+        lowerMsg.includes('pending') ||
+        lowerMsg.includes('queue') ||
+        lowerMsg.includes('approve') ||
+        lowerMsg.includes('waiting') ||
+        (lowerMsg.includes('booking') && user.role === 'TERMINAL_OPERATOR')
+      ) {
+        return await this.handleOperatorQueueQuery();
+      }
+
+      // Intent: Alerts (for operators)
+      if (
+        lowerMsg.includes('alert') ||
+        lowerMsg.includes('risk') ||
+        lowerMsg.includes('warning')
+      ) {
+        return await this.handleAlertsQuery();
       }
 
       // Intent: Create booking
@@ -536,26 +1847,943 @@ export class AiService {
         return await this.handleStatusQuery();
       }
 
-      // Intent: Help
-      if (lowerMsg.includes('help') || lowerMsg.includes('what can you')) {
+      // Intent: Help - ONLY show menu when explicitly asked
+      if (
+        lowerMsg === 'help' ||
+        lowerMsg.includes('what can you do') ||
+        lowerMsg.includes('what can you help') ||
+        lowerMsg.includes('what are your capabilities') ||
+        lowerMsg.includes('show me what you can do')
+      ) {
         return this.handleHelpQuery(user);
       }
 
-      // Default
+      // Default: Ask clarifying question instead of showing menu
       return (
-        `I understand you're asking: "${message}".\n\n` +
-        'I can help you with:\n' +
-        '• **Slot availability** — "What slots are available tomorrow?"\n' +
-        '• **My bookings** — "Show my bookings"\n' +
-        '• **Port status** — "How busy is the port?"\n' +
-        '• **Container tracking** — "Track container MSKU1234567"\n' +
-        '• **Booking guidance** — "How do I book a slot?"\n\n' +
-        'Type **help** for more options.'
+        `I'm not quite sure what you're asking about. ` +
+        `Could you be more specific? For example, you can ask me about:\n` +
+        `- Your bookings or slot availability\n` +
+        `- Container tracking\n` +
+        `- Port status\n\n` +
+        `Or just say "help" to see everything I can do!`
       );
     } catch (error) {
       this.logger.error(`AI rule-based processing error: ${error}`);
       return 'I encountered an error processing your request. Please try again.';
     }
+  }
+
+  /**
+   * Stateful rule-based processing with explicit state machine
+   */
+  private async processWithRulesStateful(
+    message: string,
+    user: RequestUser,
+    history: Array<{ role: string; content: string }>,
+    state: ConversationState,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const lowerMsg = message.toLowerCase().trim();
+    let newState = { ...state, context: { ...state.context } };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GUARD: Never show fallback menu if status != IDLE
+    // ─────────────────────────────────────────────────────────────────────────
+    const isInProgress = state.status !== ConversationStatus.IDLE;
+
+    // Handle explicit cancel
+    if (
+      lowerMsg === 'cancel' ||
+      lowerMsg === 'stop' ||
+      lowerMsg === 'nevermind'
+    ) {
+      return {
+        response: 'Okay, cancelled. What would you like to do instead?',
+        newState: this.resetState(),
+      };
+    }
+
+    // Handle explicit help request (only allowed if IDLE or explicitly asked)
+    if (
+      lowerMsg === 'help' ||
+      lowerMsg.includes('what can you do') ||
+      lowerMsg.includes('what can you help')
+    ) {
+      return {
+        response: this.handleHelpQuery(user),
+        newState: isInProgress ? state : this.resetState(),
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STATE: Handle based on current status
+    // ─────────────────────────────────────────────────────────────────────────
+
+    switch (state.status) {
+      case ConversationStatus.SUGGESTED_SLOTS_SHOWN:
+      case ConversationStatus.AWAITING_CONFIRMATION: {
+        // Extract any new info from the message
+        const entities = this.extractEntities(message);
+        Object.keys(entities).forEach((key) => {
+          if ((entities as any)[key]) {
+            (newState.context as any)[key] = (entities as any)[key];
+          }
+        });
+
+        // Check for slot number selection
+        const slotNum = parseInt(lowerMsg, 10);
+        if (!isNaN(slotNum) && state.context.slotCandidates) {
+          if (slotNum >= 1 && slotNum <= state.context.slotCandidates.length) {
+            const selected = state.context.slotCandidates[slotNum - 1];
+            newState.context.suggestedSlotId = selected.slotId;
+            newState.status = ConversationStatus.BOOKING_IN_PROGRESS;
+            newState.lastQuestionType = QuestionType.NONE;
+            return {
+              response:
+                `Great choice! You selected ${selected.terminal}: ${selected.start}-${selected.end}.\n\n` +
+                `To complete booking, please provide your container number (e.g., MSKU1234567).`,
+              newState,
+            };
+          }
+        }
+
+        // User provided something but not yes/no - continue collecting info
+        const missing = this.getMissingSlotsStateful(
+          state.currentIntent,
+          newState.context,
+        );
+        if (missing.length > 0) {
+          newState.lastQuestionType = this.getQuestionTypeForSlot(missing[0]);
+          return {
+            response: this.askForNextSlotStateful(missing[0], newState.context),
+            newState,
+          };
+        }
+
+        // All info collected - prompt for confirmation
+        if (
+          state.context.slotCandidates &&
+          state.context.slotCandidates.length > 0
+        ) {
+          return {
+            response: `Would you like me to proceed with booking one of these slots?`,
+            newState: {
+              ...newState,
+              status: ConversationStatus.AWAITING_CONFIRMATION,
+              lastQuestionType: QuestionType.CONFIRM_BOOK_SLOT,
+            },
+          };
+        }
+        break;
+      }
+
+      case ConversationStatus.AWAITING_SLOT_SELECTION: {
+        // Check for slot number
+        const slotNum = parseInt(lowerMsg, 10);
+        if (!isNaN(slotNum) && state.context.slotCandidates) {
+          if (slotNum >= 1 && slotNum <= state.context.slotCandidates.length) {
+            const selected = state.context.slotCandidates[slotNum - 1];
+            newState.context.suggestedSlotId = selected.slotId;
+            newState.status = ConversationStatus.BOOKING_IN_PROGRESS;
+            return {
+              response:
+                `Perfect! Selected ${selected.terminal}: ${selected.start}-${selected.end}.\n\n` +
+                `Please provide your container number to complete the booking.`,
+              newState,
+            };
+          } else {
+            return {
+              response: `Please select a number between 1 and ${state.context.slotCandidates.length}.`,
+              newState: state,
+            };
+          }
+        }
+
+        // Try to match by terminal name or time
+        const entities = this.extractEntities(message);
+        if (entities.time && state.context.slotCandidates) {
+          const match = state.context.slotCandidates.find(
+            (s) => s.start === entities.time || s.end === entities.time,
+          );
+          if (match) {
+            newState.context.suggestedSlotId = match.slotId;
+            newState.status = ConversationStatus.BOOKING_IN_PROGRESS;
+            return {
+              response:
+                `Got it! ${match.terminal}: ${match.start}-${match.end}.\n\n` +
+                `Please provide your container number.`,
+              newState,
+            };
+          }
+        }
+
+        // Still need selection - prompt again (NOT a menu!)
+        const slotList = (state.context.slotCandidates || [])
+          .map((s, i) => `${i + 1}. ${s.terminal}: ${s.start}-${s.end}`)
+          .join('\n');
+        return {
+          response: `Which slot would you like? Reply with the number:\n\n${slotList}`,
+          newState: state,
+        };
+      }
+
+      case ConversationStatus.AWAITING_INFO: {
+        // Extract entities and fill slots
+        const entities = this.extractEntities(message);
+        Object.keys(entities).forEach((key) => {
+          if ((entities as any)[key]) {
+            (newState.context as any)[key] = (entities as any)[key];
+          }
+        });
+
+        const missing = this.getMissingSlotsStateful(
+          state.currentIntent,
+          newState.context,
+        );
+        if (missing.length > 0) {
+          newState.lastQuestionType = this.getQuestionTypeForSlot(missing[0]);
+          return {
+            response: this.askForNextSlotStateful(missing[0], newState.context),
+            newState,
+          };
+        }
+
+        // All info collected - show slots
+        return this.showSlotsForContext(newState, user);
+      }
+
+      case ConversationStatus.BOOKING_IN_PROGRESS: {
+        // Extract container/truck info
+        const entities = this.extractEntities(message);
+        if (entities.containerNumber) {
+          newState.context.containerNumber = entities.containerNumber;
+        }
+        if (entities.truckPlate) {
+          newState.context.truckPlate = entities.truckPlate;
+        }
+
+        // Check if we have container number
+        if (newState.context.containerNumber) {
+          // Complete booking (would actually call booking service here)
+          newState.status = ConversationStatus.COMPLETED;
+          newState.currentIntent = ConversationIntent.NONE;
+
+          return {
+            response:
+              `✅ Booking request received!\n\n` +
+              `• Container: ${newState.context.containerNumber}\n` +
+              `• Truck: ${newState.context.truckPlate || 'Not specified'}\n\n` +
+              `Your booking is being processed. Is there anything else I can help with?`,
+            newState: this.resetState(),
+          };
+        }
+
+        // Still need container number
+        return {
+          response: `Please provide your container number (e.g., MSKU1234567) to complete the booking.`,
+          newState,
+        };
+      }
+
+      case ConversationStatus.IDLE:
+      default:
+        // Normal intent detection - fall through to regular processing
+        break;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // IDLE STATE: Normal intent detection
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Greetings
+    if (
+      /^(hey|hi|hello|yo|greetings|good morning|good afternoon|good evening)\b/i.test(
+        lowerMsg,
+      )
+    ) {
+      return {
+        response: `Hey there! How can I help you today?`,
+        newState: this.resetState(),
+      };
+    }
+
+    // Check availability / Book slot
+    if (
+      lowerMsg.includes('available') ||
+      lowerMsg.includes('slot') ||
+      lowerMsg.includes('book') ||
+      lowerMsg.includes('reserve')
+    ) {
+      const entities = this.extractEntities(message);
+      newState.currentIntent = ConversationIntent.BOOK_SLOT;
+      newState.context = { ...newState.context, ...entities };
+
+      const missing = this.getMissingSlotsStateful(
+        ConversationIntent.BOOK_SLOT,
+        newState.context,
+      );
+
+      if (missing.length === 0 || newState.context.date) {
+        // Have enough info to show slots
+        return this.showSlotsForContext(newState, user);
+      }
+
+      // Need more info
+      newState.status = ConversationStatus.AWAITING_INFO;
+      newState.lastQuestionType = this.getQuestionTypeForSlot(missing[0]);
+      return {
+        response: this.askForNextSlotStateful(missing[0], newState.context),
+        newState,
+      };
+    }
+
+    // My bookings
+    if (
+      lowerMsg.includes('my booking') ||
+      lowerMsg.includes('my reservation')
+    ) {
+      const bookingsResponse = await this.handleMyBookingsQuery(user);
+      return {
+        response: bookingsResponse,
+        newState: this.resetState(),
+      };
+    }
+
+    // Track container
+    if (lowerMsg.includes('track') || lowerMsg.includes('where is')) {
+      const containerMatch = message.match(/[A-Z]{4}\d{7}/i);
+      if (containerMatch) {
+        const trackResponse = await this.handleContainerTrack(
+          containerMatch[0].toUpperCase(),
+        );
+        return {
+          response: trackResponse,
+          newState: this.resetState(),
+        };
+      }
+      newState.currentIntent = ConversationIntent.TRACK_CONTAINER;
+      newState.status = ConversationStatus.AWAITING_INFO;
+      newState.lastQuestionType = QuestionType.PROVIDE_CONTAINER;
+      return {
+        response:
+          'What container number would you like to track? (e.g., MSKU1234567)',
+        newState,
+      };
+    }
+
+    // Port status
+    if (
+      lowerMsg.includes('status') ||
+      lowerMsg.includes('congestion') ||
+      lowerMsg.includes('busy')
+    ) {
+      const statusResponse = await this.handleStatusQuery();
+      return {
+        response: statusResponse,
+        newState: this.resetState(),
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DEFAULT: Only show clarification if truly IDLE, never show menu
+    // ─────────────────────────────────────────────────────────────────────────
+    if (isInProgress) {
+      // In progress but couldn't understand - ask for clarification related to current task
+      const taskName =
+        state.currentIntent === ConversationIntent.BOOK_SLOT
+          ? 'booking'
+          : state.currentIntent === ConversationIntent.TRACK_CONTAINER
+            ? 'container tracking'
+            : 'your request';
+
+      return {
+        response: `I'm helping you with ${taskName}. Could you clarify what you need, or say "cancel" to start over?`,
+        newState: state,
+      };
+    }
+
+    // Truly IDLE and unclear - offer gentle guidance (NOT a full menu)
+    return {
+      response:
+        `I'm not sure what you're looking for. Could you tell me more?\n\n` +
+        `For example: "Show available slots" or "Track container MSKU1234567"`,
+      newState: this.resetState(),
+    };
+  }
+
+  /**
+   * Get missing slots for a given intent (stateful version)
+   */
+  private getMissingSlotsStateful(
+    intent: ConversationIntent,
+    context: ConversationContext,
+  ): string[] {
+    const missing: string[] = [];
+
+    switch (intent) {
+      case ConversationIntent.BOOK_SLOT:
+        // Only date is truly required for showing slots
+        if (!context.date) missing.push('date');
+        break;
+      case ConversationIntent.TRACK_CONTAINER:
+        if (!context.containerNumber) missing.push('container');
+        break;
+      case ConversationIntent.CANCEL_BOOKING:
+      case ConversationIntent.RESCHEDULE_BOOKING:
+        if (!context.bookingId) missing.push('booking');
+        break;
+    }
+
+    return missing;
+  }
+
+  /**
+   * Map slot name to QuestionType
+   */
+  private getQuestionTypeForSlot(slot: string): QuestionType {
+    switch (slot) {
+      case 'terminal':
+        return QuestionType.PROVIDE_TERMINAL;
+      case 'date':
+        return QuestionType.PROVIDE_DATE;
+      case 'time':
+        return QuestionType.PROVIDE_TIME;
+      case 'container':
+        return QuestionType.PROVIDE_CONTAINER;
+      case 'booking':
+        return QuestionType.PROVIDE_BOOKING_ID;
+      default:
+        return QuestionType.NONE;
+    }
+  }
+
+  /**
+   * Ask for next missing slot (stateful version)
+   */
+  private askForNextSlotStateful(
+    slot: string,
+    context: ConversationContext,
+  ): string {
+    switch (slot) {
+      case 'terminal':
+        return 'Which terminal? (e.g., Terminal A, Terminal B)';
+      case 'date':
+        return 'What date are you looking for? (e.g., tomorrow, next Monday, 2026-02-10)';
+      case 'time':
+        return `What time on ${context.date || 'that day'}? (e.g., 9am, 14:00, morning)`;
+      case 'container':
+        return 'What is the container number? (e.g., MSKU1234567)';
+      case 'booking':
+        return 'Which booking? Please provide the booking ID, or say "show my bookings".';
+      default:
+        return `Could you provide the ${slot}?`;
+    }
+  }
+
+  /**
+   * Show available slots based on collected context
+   */
+  private async showSlotsForContext(
+    state: ConversationState,
+    user: RequestUser,
+  ): Promise<{ response: string; newState: ConversationState }> {
+    const context = state.context;
+    const newState = { ...state, context: { ...context } };
+
+    try {
+      const availability = await this.slotsService.getAvailability(
+        undefined,
+        context.date,
+      );
+
+      // Filter by terminal if specified
+      let filtered = availability;
+      if (context.terminal) {
+        filtered = availability.filter((slot) =>
+          slot.terminalName
+            .toLowerCase()
+            .includes(context.terminal!.toLowerCase().replace('terminal ', '')),
+        );
+      }
+
+      if (filtered.length === 0) {
+        newState.status = ConversationStatus.IDLE;
+        return {
+          response:
+            `No slots available for ${context.terminal || 'any terminal'} on ${context.date || 'the requested date'}.\n\n` +
+            `Would you like to try a different date or terminal?`,
+          newState,
+        };
+      }
+
+      // Build slot candidates
+      const slotCandidates: SlotCandidate[] = filtered
+        .slice(0, 5)
+        .map((slot, i) => ({
+          slotId: (slot as any).id || `slot-${i + 1}`,
+          terminal: slot.terminalName,
+          terminalId: slot.terminalId || '',
+          start: new Date(slot.startTime).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          end: new Date(slot.endTime).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          capacity: `${slot.availableCount}/${slot.capacity}`,
+          date:
+            context.date ||
+            new Date(slot.startTime).toISOString().split('T')[0],
+        }));
+
+      newState.context.slotCandidates = slotCandidates;
+      newState.status = ConversationStatus.SUGGESTED_SLOTS_SHOWN;
+      newState.lastQuestionType = QuestionType.CONFIRM_BOOK_SLOT;
+
+      const slotList = slotCandidates
+        .map(
+          (s, i) =>
+            `${i + 1}. **${s.terminal}**: ${s.start}-${s.end} (${s.capacity} spots)`,
+        )
+        .join('\n');
+
+      return {
+        response:
+          `Here are the available slots${context.date ? ` for ${context.date}` : ''}:\n\n` +
+          `${slotList}\n\n` +
+          `Would you like to book one of these?`,
+        newState,
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching slots: ${error}`);
+      return {
+        response:
+          'Sorry, I had trouble fetching available slots. Please try again.',
+        newState: this.resetState(),
+      };
+    }
+  }
+
+  // ─── Stateful Conversation Helpers ─────────────────────────────────────────
+
+  private isShortAnswer(msg: string): boolean {
+    const shortAnswers = [
+      'yes',
+      'no',
+      'ok',
+      'okay',
+      'sure',
+      'yep',
+      'nope',
+      'yeah',
+      'nah',
+      'correct',
+      'right',
+      'wrong',
+      'cancel',
+      'stop',
+      'done',
+      'next',
+      'confirm',
+      'proceed',
+      'go ahead',
+      'never mind',
+      'nevermind',
+    ];
+    return shortAnswers.some(
+      (a) => msg === a || msg === a + '.' || msg === a + '!',
+    );
+  }
+
+  /**
+   * Extract entities from user message for slot filling.
+   * Returns an object with extracted: terminal, date, time, containerNumber, truckPlate, bookingId
+   */
+  private extractEntities(message: string): {
+    terminal?: string;
+    date?: string;
+    time?: string;
+    containerNumber?: string;
+    truckPlate?: string;
+    bookingId?: string;
+  } {
+    const lowerMsg = message.toLowerCase();
+    const entities: any = {};
+
+    // Extract terminal (Terminal A, Terminal B, etc.)
+    const terminalMatch = message.match(/terminal\s*([a-z0-9]+)/i);
+    if (terminalMatch) {
+      entities.terminal = `Terminal ${terminalMatch[1].toUpperCase()}`;
+    }
+
+    // Extract date patterns
+    const isoDateMatch = message.match(/(\d{4}-\d{2}-\d{2})/);
+    if (isoDateMatch) {
+      entities.date = isoDateMatch[1];
+    } else if (lowerMsg.includes('today')) {
+      entities.date = new Date().toISOString().split('T')[0];
+    } else if (lowerMsg.includes('tomorrow')) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      entities.date = tomorrow.toISOString().split('T')[0];
+    } else if (lowerMsg.includes('next week')) {
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      entities.date = nextWeek.toISOString().split('T')[0];
+    }
+
+    // Extract time patterns (08:00, 9am, 14:30, etc.)
+    const time24Match = message.match(/(\d{1,2}:\d{2})/);
+    const time12Match = message.match(/(\d{1,2})\s*(am|pm)/i);
+    if (time24Match) {
+      entities.time = time24Match[1];
+    } else if (time12Match) {
+      let hour = parseInt(time12Match[1]);
+      const isPm = time12Match[2].toLowerCase() === 'pm';
+      if (isPm && hour !== 12) hour += 12;
+      if (!isPm && hour === 12) hour = 0;
+      entities.time = `${hour.toString().padStart(2, '0')}:00`;
+    } else if (lowerMsg.includes('morning')) {
+      entities.time = '09:00';
+    } else if (lowerMsg.includes('afternoon')) {
+      entities.time = '14:00';
+    } else if (lowerMsg.includes('evening')) {
+      entities.time = '18:00';
+    }
+
+    // Extract container number (4 letters + 7 digits or generic alphanumeric)
+    const containerMatch = message.match(/\b([A-Z]{4}\d{7})\b/i);
+    if (containerMatch) {
+      entities.containerNumber = containerMatch[1].toUpperCase();
+    }
+
+    // Extract truck plate (common patterns like AB-123-CD, ABC1234)
+    const plateMatch = message.match(
+      /\b([A-Z]{2,3}[-\s]?\d{2,4}[-\s]?[A-Z]{2,3})\b/i,
+    );
+    if (plateMatch) {
+      entities.truckPlate = plateMatch[1].toUpperCase().replace(/\s/g, '-');
+    }
+
+    // Extract booking ID (UUID-like or BK- prefixed)
+    const bookingMatch = message.match(
+      /\b(BK-\d+|[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}|[a-f0-9]{8})\b/i,
+    );
+    if (bookingMatch) {
+      entities.bookingId = bookingMatch[1];
+    }
+
+    return entities;
+  }
+
+  /**
+   * Accumulate context from conversation history.
+   * Scans previous messages to collect already-provided information.
+   */
+  private accumulateContextFromHistory(
+    history: Array<{ role: string; content: string }>,
+  ): {
+    terminal?: string;
+    date?: string;
+    time?: string;
+    containerNumber?: string;
+    truckPlate?: string;
+    bookingId?: string;
+    task?: string;
+  } {
+    const accumulated: any = {};
+
+    for (const msg of history) {
+      const extracted = this.extractEntities(msg.content);
+      // Merge extracted entities (later messages override earlier ones)
+      Object.keys(extracted).forEach((key) => {
+        if (extracted[key]) accumulated[key] = extracted[key];
+      });
+
+      // Detect ongoing task type from conversation
+      const lowerContent = msg.content.toLowerCase();
+      if (
+        lowerContent.includes('book') ||
+        lowerContent.includes('reserve') ||
+        lowerContent.includes('slot')
+      ) {
+        accumulated.task = 'booking';
+      } else if (
+        lowerContent.includes('cancel') &&
+        !lowerContent.includes('no problem')
+      ) {
+        accumulated.task = 'cancel';
+      } else if (
+        lowerContent.includes('track') ||
+        lowerContent.includes('where is')
+      ) {
+        accumulated.task = 'track';
+      } else if (
+        lowerContent.includes('reschedule') ||
+        lowerContent.includes('change')
+      ) {
+        accumulated.task = 'reschedule';
+      }
+    }
+
+    return accumulated;
+  }
+
+  /**
+   * Check what information is still missing for a task.
+   */
+  private getMissingSlots(task: string, context: any): string[] {
+    const missing: string[] = [];
+
+    switch (task) {
+      case 'booking':
+        if (!context.terminal) missing.push('terminal');
+        if (!context.date) missing.push('date');
+        if (!context.time) missing.push('time');
+        break;
+      case 'cancel':
+      case 'reschedule':
+        if (!context.bookingId) missing.push('booking ID');
+        break;
+      case 'track':
+        if (!context.containerNumber) missing.push('container number');
+        break;
+    }
+
+    return missing;
+  }
+
+  private detectOngoingTask(lastAssistantMsg: string): boolean {
+    // Detect if the assistant asked a question or is waiting for input
+    const questionIndicators = [
+      '?',
+      'which one',
+      'would you like',
+      'do you want',
+      'please provide',
+      'please specify',
+      'let me know',
+      'choose',
+      'select',
+      'confirm',
+    ];
+    return questionIndicators.some((q) => lastAssistantMsg.includes(q));
+  }
+
+  private async handleContextualResponse(
+    userMsg: string,
+    lastAssistantMsg: string,
+    user: RequestUser,
+  ): Promise<string | null> {
+    // Handle "yes" responses
+    if (
+      [
+        'yes',
+        'yep',
+        'yeah',
+        'sure',
+        'ok',
+        'okay',
+        'correct',
+        'right',
+        'confirm',
+        'proceed',
+        'go ahead',
+      ].includes(userMsg)
+    ) {
+      // Check what the assistant was asking about
+      if (
+        lastAssistantMsg.includes('show') &&
+        lastAssistantMsg.includes('booking')
+      ) {
+        return await this.handleMyBookingsQuery(user);
+      }
+      if (
+        lastAssistantMsg.includes('available') ||
+        lastAssistantMsg.includes('slot')
+      ) {
+        return await this.handleAvailabilityQuery('');
+      }
+      if (lastAssistantMsg.includes('cancel')) {
+        return 'Alright, to cancel a booking, please tell me the booking ID or say "show my bookings" to see your bookings first.';
+      }
+      if (lastAssistantMsg.includes('help')) {
+        return this.handleHelpQuery(user);
+      }
+      // Generic confirmation
+      return 'Got it! What would you like me to do next?';
+    }
+
+    // Handle "no" responses
+    if (
+      [
+        'no',
+        'nope',
+        'nah',
+        'wrong',
+        'cancel',
+        'stop',
+        'never mind',
+        'nevermind',
+      ].includes(userMsg)
+    ) {
+      return 'No problem! Is there anything else I can help you with?';
+    }
+
+    // Handle "done" or "next"
+    if (['done', 'next'].includes(userMsg)) {
+      return 'Great! What would you like to do next?';
+    }
+
+    return null; // No contextual match, let regular processing handle it
+  }
+
+  private async continueTaskFlowWithContext(
+    history: Array<{ role: string; content: string }>,
+    userMsg: string,
+    user: RequestUser,
+  ): Promise<string> {
+    // Accumulate all context from conversation history + current message
+    const context = this.accumulateContextFromHistory(history);
+    const currentEntities = this.extractEntities(userMsg);
+
+    // Merge current message entities into context
+    Object.keys(currentEntities).forEach((key) => {
+      if ((currentEntities as any)[key]) {
+        (context as any)[key] = (currentEntities as any)[key];
+      }
+    });
+
+    const task = context.task || 'unknown';
+
+    // Check what's still missing
+    const missing = this.getMissingSlots(task, context);
+
+    // If we have everything, execute the task
+    if (missing.length === 0) {
+      return await this.executeCompletedTask(task, context, user);
+    }
+
+    // Acknowledge what we received and ask for next missing piece
+    const acknowledged = this.buildAcknowledgement(currentEntities);
+    const nextQuestion = this.askForNextSlot(missing[0], context);
+
+    if (acknowledged) {
+      return `${acknowledged} ${nextQuestion}`;
+    }
+    return nextQuestion;
+  }
+
+  /**
+   * Build an acknowledgement of what the user just provided.
+   */
+  private buildAcknowledgement(entities: any): string {
+    const parts: string[] = [];
+    if (entities.terminal) parts.push(`Terminal: ${entities.terminal}`);
+    if (entities.date) parts.push(`Date: ${entities.date}`);
+    if (entities.time) parts.push(`Time: ${entities.time}`);
+    if (entities.containerNumber)
+      parts.push(`Container: ${entities.containerNumber}`);
+    if (entities.bookingId) parts.push(`Booking: ${entities.bookingId}`);
+
+    if (parts.length === 0) return '';
+    return `Got it! (${parts.join(', ')})`;
+  }
+
+  /**
+   * Ask for the next missing slot in a conversational way.
+   */
+  private askForNextSlot(slot: string, context: any): string {
+    switch (slot) {
+      case 'terminal':
+        return 'Which terminal would you like? (e.g., Terminal A, Terminal B)';
+      case 'date':
+        return 'What date? (e.g., tomorrow, 2026-02-08)';
+      case 'time':
+        return `What time on ${context.date || 'that day'}? (e.g., 9am, 14:00, morning)`;
+      case 'booking ID':
+        return 'Which booking? Please provide the booking ID, or say "show my bookings" to see your list.';
+      case 'container number':
+        return 'What is the container number? (e.g., MSKU1234567)';
+      default:
+        return `Could you provide the ${slot}?`;
+    }
+  }
+
+  /**
+   * Execute a task once all required slots are filled.
+   */
+  private async executeCompletedTask(
+    task: string,
+    context: any,
+    user: RequestUser,
+  ): Promise<string> {
+    switch (task) {
+      case 'booking':
+        // Show available slots matching the criteria
+        const availability = await this.slotsService.getAvailability(
+          undefined,
+          context.date,
+        );
+        const matchingSlots = availability.filter((slot) => {
+          const matchesTerminal =
+            !context.terminal ||
+            slot.terminalName
+              .toLowerCase()
+              .includes(
+                context.terminal.toLowerCase().replace('terminal ', ''),
+              );
+          const slotTime = new Date(slot.startTime).toTimeString().slice(0, 5);
+          const matchesTime = !context.time || slotTime === context.time;
+          return matchesTerminal && (matchesTime || !context.time);
+        });
+
+        if (matchingSlots.length === 0) {
+          return `No available slots found for ${context.terminal || 'any terminal'} on ${context.date}${context.time ? ` at ${context.time}` : ''}. Would you like to try a different time or date?`;
+        }
+
+        const slotSummary = matchingSlots
+          .slice(0, 3)
+          .map((slot) => {
+            const start = new Date(slot.startTime).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            const end = new Date(slot.endTime).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            return `• ${slot.terminalName}: ${start}-${end} (${slot.availableCount} spots)`;
+          })
+          .join('\n');
+
+        return `Here are the available slots for ${context.terminal || 'all terminals'} on ${context.date}:\n\n${slotSummary}\n\nWould you like me to book one of these?`;
+
+      case 'cancel':
+        return `I found booking ${context.bookingId}. Are you sure you want to cancel it? Reply "yes" to confirm or "no" to keep it.`;
+
+      case 'track':
+        return await this.handleContainerTrack(context.containerNumber);
+
+      case 'reschedule':
+        return `To reschedule booking ${context.bookingId}, what new date and time would you prefer?`;
+
+      default:
+        return 'How can I help you with that?';
+    }
+  }
+
+  // Legacy method - kept for compatibility but replaced by continueTaskFlowWithContext
+  private continueTaskFlow(
+    lastAssistantMsg: string,
+    userMsg: string,
+    user: RequestUser,
+  ): string {
+    // This is now a fallback - the main logic is in continueTaskFlowWithContext
+    if (lastAssistantMsg.includes('?')) {
+      return `I'm still waiting for your response. Could you please answer the question, or say "cancel" to start over.`;
+    }
+    return `I'm not sure how to proceed. Could you clarify?`;
   }
 
   private async handleAvailabilityQuery(message: string): Promise<string> {
@@ -707,6 +2935,92 @@ export class AiService {
     return `Current port status:\n\n${lines.join('\n')}\n\nWant to see slot availability for a specific terminal?`;
   }
 
+  private async handleOperatorQueueQuery(): Promise<string> {
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: { in: ['PENDING', 'CONFIRMED', 'AT_RISK', 'READY_TO_GO'] },
+      },
+      include: {
+        terminal: { select: { name: true } },
+        timeSlot: { select: { startTime: true, endTime: true } },
+        carrier: { select: { email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+    });
+
+    if (bookings.length === 0) {
+      return 'No bookings in the queue right now. 🎉';
+    }
+
+    const pending = bookings.filter((b) => b.status === 'PENDING');
+    const atRisk = bookings.filter((b) => b.status === 'AT_RISK');
+    const confirmed = bookings.filter((b) => b.status === 'CONFIRMED');
+
+    let response = '📋 **Booking Queue Summary:**\n\n';
+    response += `• **${pending.length}** Pending approval\n`;
+    response += `• **${atRisk.length}** At risk\n`;
+    response += `• **${confirmed.length}** Confirmed\n\n`;
+
+    if (pending.length > 0) {
+      response += '**Pending Bookings (need approval):**\n';
+      pending.slice(0, 5).forEach((b) => {
+        const time = new Date(b.timeSlot.startTime).toLocaleString();
+        response += `• ${b.carrier.email} @ ${b.terminal.name} — ${time}\n`;
+      });
+    }
+
+    if (atRisk.length > 0) {
+      response += '\n⚠️ **At-Risk Bookings:**\n';
+      atRisk.slice(0, 3).forEach((b) => {
+        const time = new Date(b.timeSlot.startTime).toLocaleString();
+        response += `• ${b.carrier.email} @ ${b.terminal.name} — ${time}\n`;
+      });
+    }
+
+    return response;
+  }
+
+  private async handleAlertsQuery(): Promise<string> {
+    const atRiskBookings = await this.prisma.booking.findMany({
+      where: { status: 'AT_RISK' },
+      include: {
+        terminal: { select: { name: true } },
+        carrier: { select: { email: true } },
+        timeSlot: { select: { startTime: true } },
+      },
+      take: 5,
+    });
+
+    const pendingCount = await this.prisma.booking.count({
+      where: { status: 'PENDING' },
+    });
+
+    let response = '⚠️ **Current Alerts:**\n\n';
+    let alertCount = 0;
+
+    if (atRiskBookings.length > 0) {
+      alertCount++;
+      response += `🔴 **${atRiskBookings.length} booking(s) are AT RISK:**\n`;
+      atRiskBookings.forEach((b) => {
+        const time = new Date(b.timeSlot.startTime).toLocaleString();
+        response += `  • ${b.carrier.email} @ ${b.terminal.name} — ${time}\n`;
+      });
+      response += '\n';
+    }
+
+    if (pendingCount > 5) {
+      alertCount++;
+      response += `🟡 **Queue backlog:** ${pendingCount} bookings waiting for approval\n\n`;
+    }
+
+    if (alertCount === 0) {
+      return '✅ No active alerts. Everything looks good!';
+    }
+
+    return response;
+  }
+
   private handleHelpQuery(user: RequestUser): string {
     const baseHelp =
       "I'm your **PORTFLOW AI** assistant. Here's what I can do:\n\n" +
@@ -734,20 +3048,74 @@ export class AiService {
     return baseHelp + '🔍 Ask me anything about port operations!';
   }
 
-  private buildSystemPrompt(user: RequestUser): string {
+  private buildSystemPrompt(
+    user: RequestUser,
+    history: Array<{ role: string; content: string }> = [],
+  ): string {
+    // Detect if this is a new chat (only 1 message = current user message)
+    const isNewChat = history.length <= 1;
+
+    const newChatInstructions = isNewChat
+      ? '\n\n🔴 NEW CHAT SESSION - IMPORTANT:\n' +
+        '- This is a BRAND NEW conversation with NO prior context\n' +
+        '- You have NO knowledge of any previous messages or conversations\n' +
+        '- Do NOT reference or assume anything from past interactions\n' +
+        '- Do NOT say "as we discussed" or "as I mentioned before"\n' +
+        '- Treat this user as if you are meeting them for the first time in this session\n' +
+        '- Start fresh with no assumptions about their previous requests\n'
+      : '';
+
+    const roleSpecificInstructions =
+      user.role === 'CARRIER'
+        ? `This user is a CARRIER (${user.email}). IMPORTANT:
+- ONLY show this carrier's OWN bookings and data - NEVER show other carriers' data
+- Use get_my_bookings tool for their bookings (supports status filter: PENDING, CONFIRMED, AT_RISK)
+- DO NOT use get_operator_queue or get_alerts - those are for operators only
+- Help them with: booking slots, checking availability, tracking their containers, viewing their bookings, understanding charges`
+        : user.role === 'TERMINAL_OPERATOR'
+          ? `This user is a TERMINAL OPERATOR. Help them with:
+- Use get_operator_queue to see ALL pending bookings from all carriers
+- Use get_alerts for at-risk bookings and system warnings
+- Approving/rejecting bookings, managing the queue, checking terminal utilization`
+          : user.role === 'PORT_ADMIN'
+            ? 'This user is a PORT ADMIN. Help them with: viewing analytics, managing terminals, auditing operations, and system configuration.'
+            : 'This user is a GATE AGENT. Help them with: validating gate access, scanning QR codes, and managing truck entry.';
+
     return (
-      'You are PORTFLOW AI, an intelligent assistant for a maritime port truck booking system.\n' +
-      'You help users manage truck bookings, check slot availability, track containers, and understand port congestion.\n\n' +
-      `Current user: ${user.email} (Role: ${user.role})\n\n` +
-      'RULES:\n' +
-      '- Be concise and professional\n' +
-      '- Use the provided tools to fetch real data — NEVER make up data\n' +
-      '- For carriers: help with bookings, availability, and container tracking\n' +
-      '- For operators: help with queue management and alerts\n' +
-      '- For admins: help with analytics and configuration\n' +
-      '- Always format dates in a human-readable way\n' +
-      '- If you cannot help with something, explain what you CAN help with\n' +
-      `- Only carriers (role=CARRIER) can create or cancel bookings. This user's role is ${user.role}.\n`
+      'You are PORTFLOW AI, a STATEFUL conversational assistant for port operations.\n\n' +
+      `Current user: ${user.email} (Role: ${user.role})\n` +
+      `${roleSpecificInstructions}\n\n` +
+      'CRITICAL RULES - FOLLOW THESE EXACTLY:\n' +
+      '1. Respond naturally like a human assistant - be conversational and friendly\n' +
+      '2. NEVER show a menu or list of capabilities UNLESS the user explicitly asks "help" or "what can you do"\n' +
+      '3. If the user greets you (hey, hello, hi, etc.), greet them back warmly and ask how you can help\n' +
+      '4. If the user asks a question, answer it DIRECTLY using tools to fetch real data\n' +
+      '5. If information is missing to answer, ask a follow-up question\n' +
+      '6. Be concise but helpful - no unnecessary explanations\n' +
+      '7. For CARRIERS: ONLY show their own data, never other carriers\n\n' +
+      'STATEFUL CONVERSATION RULES (VERY IMPORTANT):\n' +
+      '- Always consider previous messages in the conversation\n' +
+      '- If the last assistant message asked a question, interpret short answers (yes, no, ok, sure) as replies to that question\n' +
+      '- Never reset the conversation unless explicitly told\n' +
+      '- Never show a menu if a task is in progress\n' +
+      '- Continue the flow until the task is completed or canceled\n\n' +
+      'SLOT FILLING RULES (CRITICAL - FOLLOW EXACTLY):\n' +
+      '- When collecting information for a task, EXTRACT and REMEMBER all provided details\n' +
+      '- NEVER ask the user to repeat information they already provided in this conversation\n' +
+      '- If user says "Terminal A" → remember terminal=Terminal A for the rest of this task\n' +
+      '- If user says "tomorrow at 9am" → extract BOTH date AND time, remember both\n' +
+      '- Acknowledge what you received: "Got it, Terminal A on Feb 8th. What time?"\n' +
+      '- Only ask for MISSING information, never re-ask for provided info\n' +
+      '- NEVER fall back to help menu while collecting slot information\n\n' +
+      'EXAMPLES OF STATEFUL RESPONSES:\n' +
+      '- Assistant: "Would you like to see available slots?" → User: "yes" → Show available slots (NOT a menu!)\n' +
+      '- Assistant: "Should I cancel this booking?" → User: "no" → "No problem! Is there anything else I can help with?"\n' +
+      '- Assistant: "Which terminal?" → User: "Terminal A" → Continue with Terminal A (remember the context)\n\n' +
+      'EXAMPLES OF BAD RESPONSES (NEVER DO THIS):\n' +
+      '- User: "yes" (after assistant asked a question) → "I can help you with: 1. Bookings 2. Slots..." (WRONG!)\n' +
+      '- User: "ok" → Showing a menu instead of proceeding (WRONG!)\n\n' +
+      'Remember: Be conversational, stateful, and never lose context!' +
+      newChatInstructions
     );
   }
 

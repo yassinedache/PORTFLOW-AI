@@ -127,6 +127,6 @@ export const adminApi = {
     const res = await apiClient.get('/admin/analytics/waiting-time', {
       params,
     });
-    return res.data;
+    return res.data.daily ?? [];
   },
 };

@@ -11,8 +11,13 @@ import {
   Clock,
   MapPin,
   ShieldCheck,
+  AlertTriangle,
+  ArrowRight,
+  CircleDot,
+  Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { isAxiosError } from 'axios';
 import { PageTransition, EmptyState, ErrorAlert } from '@/components/shared';
 import { PageSkeleton } from '@/components/shared/Skeletons';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -23,7 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { operatorApi, carrierApi } from '@/lib/api';
 import { queryKeys } from '@/lib/constants';
 import { formatDateTime, formatCurrency } from '@/lib/utils';
-import { BookingStatus, type Booking } from '@/types';
+import { BookingStatus, ContainerStatus, type Booking } from '@/types';
 
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -61,14 +66,63 @@ export default function BookingDetailPage() {
     onError: () => toast.error('Failed to reject'),
   });
 
+  const containerStatusMutation = useMutation({
+    mutationFn: ({
+      containerId,
+      status,
+    }: {
+      containerId: string;
+      status: string;
+    }) =>
+      operatorApi.updateContainerStatus(containerId, { status: status as any }),
+    onSuccess: (_data, variables) => {
+      toast.success(`Container status updated to ${variables.status}`);
+      queryClient.invalidateQueries({ queryKey: queryKeys.booking(id!) });
+      queryClient.invalidateQueries({ queryKey: ['operator', 'queue'] });
+    },
+    onError: (error) => {
+      let msg = 'Failed to update container status';
+      if (isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
   const readinessMutation = useMutation({
     mutationFn: operatorApi.confirmReadiness,
-    onSuccess: () => {
-      toast.success('Readiness confirmed');
+    onSuccess: (data) => {
+      toast.success('Readiness confirmed successfully');
+      if (data?.warning) {
+        toast.warning(data.warning, { duration: 6000 });
+      }
       queryClient.invalidateQueries({ queryKey: ['operator', 'queue'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.booking(id!) });
     },
-    onError: () => toast.error('Failed to confirm readiness'),
+    onError: (error) => {
+      // FR-6: Extract meaningful error message from backend
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (isAxiosError(error)) {
+        const data = error.response?.data;
+        const status = error.response?.status;
+
+        if (status === 409) {
+          // Already confirmed — update UI to reflect real state
+          toast.info(data?.message || 'Readiness has already been confirmed');
+          queryClient.invalidateQueries({ queryKey: queryKeys.booking(id!) });
+          return;
+        }
+
+        // Use backend message if available
+        errorMessage = data?.message || data?.error || errorMessage;
+      }
+
+      toast.error('Cannot confirm readiness', {
+        description: errorMessage,
+        duration: 6000,
+      });
+    },
   });
 
   if (isLoading) return <PageSkeleton />;
@@ -87,6 +141,7 @@ export default function BookingDetailPage() {
 
   const isPending = booking.status === BookingStatus.PENDING;
   const canConfirmReady = booking.status === BookingStatus.CONFIRMED;
+  const isReadyToGo = booking.status === BookingStatus.READY_TO_GO;
 
   return (
     <PageTransition>
@@ -138,6 +193,79 @@ export default function BookingDetailPage() {
                   value={booking.container?.containerNumber || 'Not assigned'}
                 />
               </div>
+
+              {/* Container Status */}
+              {booking.container && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm font-medium">Container Status</p>
+                      </div>
+                      <ContainerStatusBadge status={booking.container.status} />
+                    </div>
+
+                    {/* Status progression */}
+                    <div className="flex items-center gap-1 text-xs">
+                      {['NOT_ARRIVED', 'IN_YARD', 'READY', 'RELEASED'].map(
+                        (step, idx, arr) => (
+                          <span key={step} className="flex items-center gap-1">
+                            <span
+                              className={`px-2 py-0.5 rounded ${
+                                booking.container!.status === step
+                                  ? 'bg-primary/20 text-primary font-semibold'
+                                  : arr.indexOf(booking.container!.status) > idx
+                                    ? 'text-emerald-400'
+                                    : 'text-muted-foreground'
+                              }`}
+                            >
+                              {step.replace('_', ' ')}
+                            </span>
+                            {idx < arr.length - 1 && (
+                              <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
+                            )}
+                          </span>
+                        ),
+                      )}
+                    </div>
+
+                    {/* Quick advance button */}
+                    {booking.container.status !== ContainerStatus.READY &&
+                      booking.container.status !== ContainerStatus.RELEASED && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          disabled={containerStatusMutation.isPending}
+                          onClick={() => {
+                            const next =
+                              booking.container!.status ===
+                              ContainerStatus.NOT_ARRIVED
+                                ? ContainerStatus.IN_YARD
+                                : ContainerStatus.READY;
+                            containerStatusMutation.mutate({
+                              containerId: booking.container!.id,
+                              status: next,
+                            });
+                          }}
+                        >
+                          {containerStatusMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                          ) : (
+                            <ArrowRight className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Advance to{' '}
+                          {booking.container.status ===
+                          ContainerStatus.NOT_ARRIVED
+                            ? 'In Yard'
+                            : 'Ready'}
+                        </Button>
+                      )}
+                  </div>
+                </>
+              )}
 
               <Separator />
 
@@ -218,22 +346,58 @@ export default function BookingDetailPage() {
               )}
 
               {canConfirmReady && (
-                <Button
-                  className="w-full"
-                  variant="glow"
-                  disabled={readinessMutation.isPending}
-                  onClick={() => readinessMutation.mutate(booking.id)}
-                >
-                  {readinessMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <ShieldCheck className="h-4 w-4 mr-2" />
-                  )}
-                  Confirm Readiness
-                </Button>
+                <>
+                  {/* Readiness Checklist */}
+                  <div className="space-y-2 rounded-md border border-border/50 bg-secondary/20 p-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Readiness Checklist
+                    </p>
+                    <ChecklistItem
+                      label="Container assigned"
+                      ok={!!booking.container}
+                    />
+                    <ChecklistItem
+                      label="Container status: READY"
+                      ok={booking.container?.status === ContainerStatus.READY}
+                    />
+                    <ChecklistItem
+                      label="Truck assigned"
+                      ok={!!booking.truck}
+                      warn={!booking.truck}
+                    />
+                    <ChecklistItem
+                      label="Slot not expired"
+                      ok={
+                        !booking.timeSlot ||
+                        new Date() <= new Date(booking.timeSlot.endTime)
+                      }
+                    />
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    variant="glow"
+                    disabled={readinessMutation.isPending}
+                    onClick={() => readinessMutation.mutate(booking.id)}
+                  >
+                    {readinessMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <ShieldCheck className="h-4 w-4 mr-2" />
+                    )}
+                    Confirm Readiness
+                  </Button>
+                </>
               )}
 
-              {!isPending && !canConfirmReady && (
+              {isReadyToGo && (
+                <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-400">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  Readiness confirmed
+                </div>
+              )}
+
+              {!isPending && !canConfirmReady && !isReadyToGo && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No actions available for this status
                 </p>
@@ -262,6 +426,67 @@ function InfoRow({
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm font-medium">{value}</p>
       </div>
+    </div>
+  );
+}
+
+function ContainerStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { color: string; label: string }> = {
+    NOT_ARRIVED: {
+      color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+      label: 'Not Arrived',
+    },
+    IN_YARD: {
+      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      label: 'In Yard',
+    },
+    READY: {
+      color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+      label: 'Ready',
+    },
+    RELEASED: {
+      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+      label: 'Released',
+    },
+  };
+  const c = config[status] || config.NOT_ARRIVED;
+  return (
+    <Badge variant="outline" className={`${c.color} text-xs`}>
+      <CircleDot className="h-3 w-3 mr-1" />
+      {c.label}
+    </Badge>
+  );
+}
+
+function ChecklistItem({
+  label,
+  ok,
+  warn,
+}: {
+  label: string;
+  ok: boolean;
+  warn?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {ok ? (
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+      ) : warn ? (
+        <AlertTriangle className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+      ) : (
+        <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />
+      )}
+      <span
+        className={
+          ok
+            ? 'text-muted-foreground'
+            : warn
+              ? 'text-yellow-400'
+              : 'text-red-400'
+        }
+      >
+        {label}
+      </span>
     </div>
   );
 }

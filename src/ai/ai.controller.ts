@@ -19,6 +19,16 @@ export class AiController {
     return this.aiService.createSession(user);
   }
 
+  @Post('chat/new')
+  @ApiOperation({
+    summary: 'Start a new empty chat',
+    description:
+      'Creates a fresh conversation with no previous messages, intent, or context. Returns the new session ID and a greeting message.',
+  })
+  newChat(@CurrentUser() user: RequestUser) {
+    return this.aiService.startNewChat(user);
+  }
+
   @Post('query')
   @ApiOperation({ summary: 'Send a query to the AI assistant' })
   query(@Body() dto: AiQueryDto, @CurrentUser() user: RequestUser) {

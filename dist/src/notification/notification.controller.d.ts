@@ -9,14 +9,14 @@ export declare class NotificationController {
                 status: import("../../generated/prisma/enums.js").BookingStatus;
             } | null;
         } & {
-            id: string;
             type: string;
             title: string;
-            message: string;
-            read: boolean;
+            id: string;
             createdAt: Date;
             userId: string;
             bookingId: string | null;
+            message: string;
+            read: boolean;
         })[];
         unreadCount: number;
         pagination: {

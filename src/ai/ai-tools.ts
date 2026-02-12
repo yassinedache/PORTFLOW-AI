@@ -34,10 +34,16 @@ export const AI_TOOLS: AiToolDefinition[] = [
   {
     name: 'get_my_bookings',
     description:
-      "Retrieve the current user's booking list with status and details.",
+      "Retrieve the current user's booking list with status and details. Use this for CARRIERS to see ONLY their own bookings.",
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        status: {
+          type: 'string',
+          description:
+            'Optional filter by status: PENDING, CONFIRMED, AT_RISK, READY_TO_GO, COMPLETED, CANCELLED',
+        },
+      },
       required: [],
     },
   },
@@ -110,7 +116,8 @@ export const AI_TOOLS: AiToolDefinition[] = [
   },
   {
     name: 'cancel_booking',
-    description: "Cancel an existing booking by its ID. Only the booking's carrier can cancel.",
+    description:
+      "Cancel an existing booking by its ID. Only the booking's carrier can cancel.",
     parameters: {
       type: 'object',
       properties: {
@@ -120,6 +127,32 @@ export const AI_TOOLS: AiToolDefinition[] = [
         },
       },
       required: ['bookingId'],
+    },
+  },
+  {
+    name: 'get_operator_queue',
+    description:
+      'TERMINAL OPERATORS ONLY: Get the list of all bookings in the queue. DO NOT use this for carriers.',
+    parameters: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          description:
+            'Optional filter by status: PENDING, CONFIRMED, AT_RISK, READY_TO_GO',
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_alerts',
+    description:
+      'TERMINAL OPERATORS ONLY: Get current alerts and warnings. DO NOT use this for carriers.',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
     },
   },
 ];
